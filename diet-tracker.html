@@ -358,20 +358,23 @@
         <button onclick="closeCustomFoodForm()" style="background:none; border:none; color:#888; cursor:pointer; font-size:18px">✕</button>
       </div>
       <p style="font-size:12px; color:#888; margin-bottom:10px">よく食べるものを登録すると、次から検索で出てくるよ</p>
+      <div style="font-size:12px; color:#ff6b9d; background:#fff0f6; padding:10px; border-radius:8px; margin-bottom:10px">
+        💡 100gで管理したい場合：単位を「g」、カロリーを「1gあたりのkcal」で登録してね。追加時に量を100と入れると100g分になるよ。
+      </div>
       <div class="form-row">
         <div>
           <label>名前 <span style="color:red">*</span></label>
-          <input type="text" id="cfName" placeholder="例: コンビニのおにぎり">
+          <input type="text" id="cfName" placeholder="例: コロッケ">
         </div>
         <div>
-          <label>1単位あたりのカロリー <span style="color:red">*</span></label>
-          <input type="number" id="cfKcal" placeholder="例: 180">
+          <label>カロリー（1単位あたり） <span style="color:red">*</span></label>
+          <input type="number" id="cfKcal" placeholder="例: 個なら190、gなら2">
         </div>
       </div>
       <div class="form-row">
         <div>
           <label>単位 <span style="color:red">*</span></label>
-          <input type="text" id="cfUnit" placeholder="例: 個、杯、皿、本、100g">
+          <input type="text" id="cfUnit" placeholder="例: 個・g・杯・枚">
         </div>
         <div>
           <label>タンパク質 (g)</label>
@@ -804,6 +807,43 @@ const FOOD_DB = [
   {n:"ビッグマック", k:530, p:26, f:28, c:42, u:"個"},
   {n:"ポテト (M)", k:410, p:5, f:22, c:50, u:"個"},
   {n:"ピザ (1切れ)", k:200, p:9, f:8, c:25, u:"切れ"},
+  // 揚げ物
+  {n:"コロッケ (ポテト)", k:190, p:4.5, f:10, c:22, u:"個", g:["ころっけ","コロッケ","ポテトコロッケ"]},
+  {n:"カニクリームコロッケ", k:220, p:7, f:13, c:20, u:"個", g:["かにくりーむころっけ","クリームコロッケ"]},
+  {n:"メンチカツ", k:280, p:14, f:18, c:18, u:"個", g:["めんちかつ","ミンチカツ"]},
+  {n:"チキンカツ", k:320, p:22, f:18, c:18, u:"枚", g:["ちきんかつ"]},
+  {n:"エビフライ", k:120, p:10, f:6, c:8, u:"本", g:["えびふらい","海老フライ"]},
+  {n:"アジフライ", k:180, p:14, f:10, c:9, u:"枚", g:["あじふらい","鯵フライ"]},
+  {n:"イカフライ", k:160, p:12, f:8, c:10, u:"枚", g:["いかふらい"]},
+  {n:"白身魚フライ", k:200, p:14, f:11, c:13, u:"枚", g:["しろみさかなふらい"]},
+  {n:"天ぷら (海老)", k:80, p:5, f:4, c:7, u:"本", g:["てんぷら","えびてん"]},
+  {n:"天ぷら (野菜)", k:70, p:1, f:4, c:7, u:"個", g:["てんぷら","野菜天"]},
+  {n:"天丼", k:800, p:20, f:25, c:110, u:"杯", g:["てんどん"]},
+  {n:"かき揚げ", k:220, p:6, f:14, c:18, u:"個", g:["かきあげ"]},
+  // 定食・セットメニュー
+  {n:"焼き魚定食", k:550, p:30, f:12, c:70, u:"食", g:["やきさかなていしょく"]},
+  {n:"唐揚げ定食", k:850, p:35, f:35, c:90, u:"食", g:["からあげていしょく"]},
+  {n:"とんかつ定食", k:950, p:35, f:45, c:90, u:"食", g:["とんかつていしょく"]},
+  {n:"生姜焼き定食", k:750, p:28, f:28, c:80, u:"食", g:["しょうがやきていしょく"]},
+  {n:"生姜焼き", k:300, p:18, f:18, c:12, u:"皿", g:["しょうがやき"]},
+  {n:"肉じゃが", k:250, p:10, f:8, c:35, u:"皿", g:["にくじゃが"]},
+  {n:"筑前煮", k:180, p:8, f:6, c:22, u:"皿", g:["ちくぜんに"]},
+  {n:"煮魚", k:180, p:20, f:8, c:8, u:"切れ", g:["にさかな","煮付け"]},
+  {n:"鶏の照り焼き", k:280, p:22, f:16, c:10, u:"枚", g:["てりやき"]},
+  {n:"サバの味噌煮", k:250, p:20, f:14, c:8, u:"切れ", g:["さばみそ","鯖味噌"]},
+  // コンビニ・外食
+  {n:"幕の内弁当", k:700, p:20, f:20, c:100, u:"個", g:["まくのうち","弁当","べんとう"]},
+  {n:"のり弁当", k:650, p:16, f:18, c:95, u:"個", g:["のりべん","海苔弁"]},
+  {n:"唐揚げ弁当", k:900, p:30, f:35, c:100, u:"個", g:["からあげべんとう"]},
+  {n:"サンドイッチ", k:310, p:12, f:14, c:34, u:"個", g:["さんどいっち"]},
+  {n:"おにぎり (鮭)", k:185, p:6, f:2, c:36, u:"個", g:["さけおにぎり"]},
+  {n:"おにぎり (ツナマヨ)", k:210, p:5, f:5, c:36, u:"個", g:["つなまよ"]},
+  {n:"おにぎり (梅)", k:170, p:3.5, f:0.5, c:37, u:"個", g:["うめ"]},
+  {n:"冷やし中華", k:520, p:18, f:12, c:82, u:"皿", g:["ひやしちゅうか"]},
+  {n:"そうめん", k:220, p:6, f:0.8, c:47, u:"束", g:["ソーメン"]},
+  {n:"冷凍ギョーザ", k:200, p:9, f:10, c:20, u:"6個", g:["れいとうぎょうざ"]},
+  {n:"たこ焼き", k:50, p:2, f:2.5, c:5, u:"個", g:["タコ焼き","たこやき"]},
+  {n:"お好み焼き", k:480, p:18, f:20, c:55, u:"枚", g:["おこのみやき"]},
 ];
 
 // 運動METs値 (1MET = 1kcal/kg/時間)
@@ -1122,7 +1162,7 @@ function addMeal() {
     getDay(currentDate).meals.push({name, cal: +manual, type, time, p:0, f:0, c:0});
   } else if(selectedFood && selectedFood.foodObj) {
     const fo = selectedFood.foodObj;
-    const displayName = `${name} × ${amt}${selectedFood.unit}`;
+    const displayName = `${name} × ${amt} ${selectedFood.unit}`;
     getDay(currentDate).meals.push({
       name: displayName, cal, type, time,
       p: +(fo.p * amt).toFixed(1),
