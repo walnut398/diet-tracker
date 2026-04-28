@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ダイエット記録">
+<meta name="theme-color" content="#ff6b9d">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23ff6b9d'/%3E%3Ctext x='50%25' y='55%25' font-size='110' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<title>マイダイエット記録</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { overscroll-behavior-y: contain; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background: linear-gradient(135deg, #ffeef8 0%, #e8f4ff 100%);
+    min-height: 100vh;
+    color: #333;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-text-size-adjust: 100%;
+  }
+  input, select, textarea, button { font-size: 16px; } /* iOSのズーム防止 */
+  button { -webkit-appearance: none; appearance: none; touch-action: manipulation; }
+  .container { max-width: 900px; margin: 0 auto; }
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  h1 { font-size: 28px; color: #ff6b9d; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 14px; }
+  .date-selector {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .date-selector input {
+    padding: 8px 12px;
+    border: 2px solid #ffd6e8;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .summary-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .summary-card .icon { font-size: 32px; margin-bottom: 8px; }
+  .summary-card .label { font-size: 12px; color: #888; margin-bottom: 5px; }
+  .summary-card .value { font-size: 24px; font-weight: bold; color: #333; }
+  .summary-card .unit { font-size: 12px; color: #888; margin-left: 3px; }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 6px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    flex: 1;
+    min-width: 70px;
+    padding: 14px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #ff6b9d, #ffa1c4);
+    color: white;
+  }
+  .panel {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    display: none;
+  }
+  .panel.active { display: block; }
+  .panel h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #ff6b9d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-row.three { grid-template-columns: 2fr 1fr 1fr; }
+  .form-row.full { grid-template-columns: 1fr; }
+  input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #f0f0f0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #ff6b9d;
+  }
+  label { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
+  button.primary {
+    background: linear-gradient(135deg, #ff6b9d, #ffa1c4);
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s;
+    width: 100%;
+    margin-top: 12px;
+    min-height: 50px;
+    box-shadow: 0 4px 12px rgba(255,107,157,0.3);
+  }
+  button.primary:active { transform: scale(0.98); }
+  button.primary:hover { transform: translateY(-2px); }
+  .records {
+    margin-top: 20px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+  }
+  .records h3 { font-size: 14px; color: #888; margin-bottom: 10px; }
+  .record-item {
+    background: #fafafa;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+  }
+  .record-info { flex: 1; }
+  .record-name { font-weight: 600; }
+  .record-detail { color: #888; font-size: 12px; margin-top: 3px; }
+  .delete-btn {
+    background: #ffe0e8;
+    color: #ff4567;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    min-height: 40px;
+    min-width: 60px;
+  }
+  .delete-btn:hover { background: #ffc0d0; }
+  .chart-container {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+  }
+  .chart-container h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #ff6b9d;
+  }
+  .empty {
+    text-align: center;
+    color: #bbb;
+    padding: 20px;
+    font-size: 13px;
+  }
+  .goal-input {
+    background: #fff8fb;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .goal-input label { font-weight: 600; color: #ff6b9d; }
+  .progress-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b9d, #ffa1c4);
+    transition: width 0.5s;
+  }
+  @media (max-width: 600px) {
+    body { padding: 12px; padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    .form-row, .form-row.three { grid-template-columns: 1fr; gap: 10px; }
+    h1 { font-size: 20px; }
+    header { padding: 16px; margin-bottom: 16px; border-radius: 16px; }
+    .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .summary-card { padding: 14px 10px; border-radius: 12px; }
+    .summary-card .icon { font-size: 26px; }
+    .summary-card .value { font-size: 20px; }
+    .panel { padding: 18px; border-radius: 16px; }
+    .tab { font-size: 13px; padding: 12px 4px; }
+    input, select, textarea { padding: 14px; }
+    .record-item { padding: 14px; }
+  }
+  @media (max-width: 380px) {
+    .summary-card .value { font-size: 18px; }
+    .tab { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>マイダイエット記録</h1>
+    <p class="subtitle">食事・運動・睡眠を毎日記録して、健康な体を目指そう</p>
+    <div class="date-selector">
+      <label style="margin:0">日付:</label>
+      <input type="date" id="currentDate">
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
+      <button onclick="exportData()" style="padding:8px 14px; border:1px solid #ffd6e8; background:white; border-radius:8px; font-size:13px; color:#ff6b9d; cursor:pointer">📤 バックアップ</button>
+      <button onclick="document.getElementById('importFile').click()" style="padding:8px 14px; border:1px solid #ffd6e8; background:white; border-radius:8px; font-size:13px; color:#ff6b9d; cursor:pointer">📥 復元</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </header>
+
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="icon">🍽️</div>
+      <div class="label">摂取カロリー</div>
+      <div class="value"><span id="totalCalories">0</span><span class="unit">kcal</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="caloriesProgress" style="width:0%"></div></div>
+    </div>
+    <div class="summary-card">
+      <div class="icon">🏃‍♀️</div>
+      <div class="label">消費カロリー</div>
+      <div class="value"><span id="burnedCalories">0</span><span class="unit">kcal</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="burnedProgress" style="width:0%"></div></div>
+    </div>
+    <div class="summary-card">
+      <div class="icon">😴</div>
+      <div class="label">睡眠時間</div>
+      <div class="value"><span id="totalSleep">0</span><span class="unit">時間</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="sleepProgress" style="width:0%"></div></div>
+    </div>
+    <div class="summary-card">
+      <div class="icon">⚖️</div>
+      <div class="label">差し引き</div>
+      <div class="value" id="netCalories">0<span class="unit">kcal</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:50%; background:#bbb"></div></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="meal">🍽️ 食事</button>
+    <button class="tab" data-tab="exercise">🏃‍♀️ 運動</button>
+    <button class="tab" data-tab="sleep">😴 睡眠</button>
+    <button class="tab" data-tab="stats">📊 統計</button>
+    <button class="tab" data-tab="profile">👤 プロフィール</button>
+  </div>
+
+  <!-- 今日のPFCバランス -->
+  <div id="pfcBox" style="background:white; padding:18px; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,0.05); margin-bottom:20px">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
+      <h3 style="font-size:15px; color:#ff6b9d; margin:0">🥗 今日のPFCバランス</h3>
+      <span style="font-size:11px; color:#888" id="pfcGoalText">目標を計算中...</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px">
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px">
+          <span style="color:#666">🍗 タンパク質</span>
+          <span><b id="pTotal">0</b>/<span id="pGoal">0</span>g</span>
+        </div>
+        <div style="height:8px; background:#f0f0f0; border-radius:4px; overflow:hidden">
+          <div id="pBar" style="height:100%; background:#ff6b9d; width:0%; transition:width 0.5s"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px">
+          <span style="color:#666">🥑 脂質</span>
+          <span><b id="fTotal">0</b>/<span id="fGoal">0</span>g</span>
+        </div>
+        <div style="height:8px; background:#f0f0f0; border-radius:4px; overflow:hidden">
+          <div id="fBar" style="height:100%; background:#ffa726; width:0%; transition:width 0.5s"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px">
+          <span style="color:#666">🍞 炭水化物</span>
+          <span><b id="cTotal">0</b>/<span id="cGoal">0</span>g</span>
+        </div>
+        <div style="height:8px; background:#f0f0f0; border-radius:4px; overflow:hidden">
+          <div id="cBar" style="height:100%; background:#7dd3c0; width:0%; transition:width 0.5s"></div>
+        </div>
+      </div>
+    </div>
+    <div id="suggestion" style="margin-top:14px; padding:12px; background:#fff8fb; border-radius:10px; font-size:13px; color:#666; display:none"></div>
+  </div>
+
+  <!-- 食事パネル -->
+  <div class="panel active" id="meal-panel">
+    <h2>🍽️ 食事を記録</h2>
+    <div class="goal-input">
+      <label>1日の目標カロリー</label>
+      <input type="number" id="calorieGoal" placeholder="例: 1800" value="1800">
+    </div>
+
+    <div class="form-row full">
+      <div style="position:relative">
+        <label style="display:flex; justify-content:space-between; align-items:center">
+          <span>🔍 食べ物を検索（例: ごはん、ラーメン、バナナ）</span>
+          <button onclick="openCustomFoodForm()" style="background:#fff8fb; border:1px solid #ffd6e8; color:#ff6b9d; padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer">+ 食材を登録</button>
+        </label>
+        <input type="text" id="foodSearch" placeholder="食べ物の名前を入力..." autocomplete="off">
+        <div id="foodSuggestions" style="position:absolute; top:100%; left:0; right:0; background:white; border:2px solid #ffd6e8; border-radius:10px; max-height:240px; overflow-y:auto; z-index:10; display:none; margin-top:4px; box-shadow:0 4px 16px rgba(0,0,0,0.1)"></div>
+      </div>
+    </div>
+
+    <!-- 自作食材フォーム -->
+    <div id="customFoodForm" style="display:none; background:#fff8fb; padding:16px; border-radius:12px; margin-bottom:12px; border:2px dashed #ffd6e8">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <strong style="color:#ff6b9d">⭐ 新しい食材を登録</strong>
+        <button onclick="closeCustomFoodForm()" style="background:none; border:none; color:#888; cursor:pointer; font-size:18px">✕</button>
+      </div>
+      <p style="font-size:12px; color:#888; margin-bottom:10px">よく食べるものを登録すると、次から検索で出てくるよ</p>
+      <div class="form-row">
+        <div>
+          <label>名前 <span style="color:red">*</span></label>
+          <input type="text" id="cfName" placeholder="例: コンビニのおにぎり">
+        </div>
+        <div>
+          <label>1単位あたりのカロリー <span style="color:red">*</span></label>
+          <input type="number" id="cfKcal" placeholder="例: 180">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>単位 <span style="color:red">*</span></label>
+          <input type="text" id="cfUnit" placeholder="例: 個、杯、皿、本、100g">
+        </div>
+        <div>
+          <label>タンパク質 (g)</label>
+          <input type="number" id="cfP" step="0.1" placeholder="任意">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>脂質 (g)</label>
+          <input type="number" id="cfF" step="0.1" placeholder="任意">
+        </div>
+        <div>
+          <label>炭水化物 (g)</label>
+          <input type="number" id="cfC" step="0.1" placeholder="任意">
+        </div>
+      </div>
+      <button class="primary" onclick="saveCustomFood()" style="margin-top:8px">この食材を登録する</button>
+    </div>
+
+    <div id="selectedFood" style="display:none; background:#fff8fb; padding:14px; border-radius:12px; margin-bottom:12px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <strong id="selectedFoodName" style="color:#ff6b9d"></strong>
+        <button onclick="clearSelectedFood()" style="background:none; border:none; color:#888; cursor:pointer; font-size:18px">✕</button>
+      </div>
+      <div class="form-row three">
+        <div>
+          <label>個数 / 量</label>
+          <input type="number" id="foodAmount" value="1" step="0.5" min="0.1">
+        </div>
+        <div>
+          <label id="foodUnitLabel">単位</label>
+          <input type="text" id="foodUnit" readonly style="background:#f5f5f5">
+        </div>
+        <div>
+          <label>カロリー</label>
+          <input type="number" id="mealCalories" readonly style="background:#f5f5f5; color:#ff6b9d; font-weight:bold">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>食事内容（手入力でもOK）</label>
+        <input type="text" id="mealName" placeholder="自動で入ります">
+      </div>
+      <div>
+        <label>食事区分</label>
+        <select id="mealType">
+          <option value="朝食">朝食</option>
+          <option value="昼食">昼食</option>
+          <option value="夕食">夕食</option>
+          <option value="間食">間食</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary" onclick="addMeal()">食事を追加</button>
+    <div class="records">
+      <h3>今日の食事</h3>
+      <div id="mealList"></div>
+    </div>
+  </div>
+
+  <!-- 運動パネル -->
+  <div class="panel" id="exercise-panel">
+    <h2>🏃‍♀️ 運動を記録</h2>
+    <div class="goal-input">
+      <label>1日の目標消費カロリー</label>
+      <input type="number" id="burnGoal" placeholder="例: 300" value="300">
+    </div>
+    <div class="form-row">
+      <div>
+        <label>運動の種類</label>
+        <select id="exerciseType">
+          <option value="散歩">🚶 散歩 (ゆっくり)</option>
+          <option value="ウォーキング" selected>🚶‍♀️ ウォーキング (普通)</option>
+          <option value="早歩き">🚶‍♂️ 早歩き</option>
+          <option value="ジョギング">🏃 ジョギング</option>
+          <option value="ランニング">🏃‍♂️ ランニング</option>
+          <option value="サイクリング">🚴 サイクリング</option>
+          <option value="水泳ゆっくり">🏊 水泳 (ゆっくり)</option>
+          <option value="水泳速め">🏊‍♂️ 水泳 (速め)</option>
+          <option value="ヨガ">🧘 ヨガ</option>
+          <option value="ピラティス">🤸 ピラティス</option>
+          <option value="ストレッチ">🤸‍♀️ ストレッチ</option>
+          <option value="筋トレ軽め">💪 筋トレ (軽め)</option>
+          <option value="筋トレ普通">💪 筋トレ (普通)</option>
+          <option value="筋トレ激しめ">💪 筋トレ (激しめ)</option>
+          <option value="ダンス">💃 ダンス</option>
+          <option value="エアロビクス">🤾 エアロビクス</option>
+          <option value="階段昇降">🪜 階段昇降</option>
+          <option value="掃除">🧹 家事 (掃除)</option>
+        </select>
+      </div>
+      <div>
+        <label>時間 (分)</label>
+        <input type="number" id="exerciseDuration" placeholder="例: 30" value="30">
+      </div>
+    </div>
+    <div style="background:#fff8fb; padding:14px; border-radius:12px; margin-bottom:12px; text-align:center">
+      <div style="font-size:13px; color:#888; margin-bottom:6px">推定消費カロリー</div>
+      <div style="font-size:28px; font-weight:bold; color:#ff6b9d">
+        <span id="exerciseCalories">0</span> <span style="font-size:14px">kcal</span>
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-top:4px">体重・運動の種類・時間から計算</div>
+    </div>
+    <button class="primary" onclick="addExercise()">運動を追加</button>
+    <div class="records">
+      <h3>今日の運動</h3>
+      <div id="exerciseList"></div>
+    </div>
+  </div>
+
+  <!-- 睡眠パネル -->
+  <div class="panel" id="sleep-panel">
+    <h2>😴 睡眠を記録</h2>
+    <div class="goal-input">
+      <label>目標睡眠時間 (時間)</label>
+      <input type="number" id="sleepGoal" placeholder="例: 8" value="8" step="0.5">
+    </div>
+    <div class="form-row">
+      <div>
+        <label>就寝時間</label>
+        <input type="time" id="sleepStart" value="23:00">
+      </div>
+      <div>
+        <label>起床時間</label>
+        <input type="time" id="sleepEnd" value="07:00">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div>
+        <label>睡眠の質</label>
+        <select id="sleepQuality">
+          <option value="とても良い">😊 とても良い</option>
+          <option value="良い" selected>🙂 良い</option>
+          <option value="普通">😐 普通</option>
+          <option value="悪い">😟 悪い</option>
+          <option value="とても悪い">😫 とても悪い</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary" onclick="addSleep()">睡眠を記録</button>
+    <div class="records">
+      <h3>今日の睡眠</h3>
+      <div id="sleepList"></div>
+    </div>
+  </div>
+
+  <!-- プロフィールパネル -->
+  <div class="panel" id="profile-panel">
+    <h2>👤 あなたのプロフィール</h2>
+    <p style="font-size:13px; color:#888; margin-bottom:16px">入力してくれたら、基礎代謝・推奨カロリー・PFCバランスを自動で計算するよ✨</p>
+    <div class="form-row">
+      <div>
+        <label>年齢</label>
+        <input type="number" id="profileAge" value="30" min="10" max="100">
+      </div>
+      <div>
+        <label>性別</label>
+        <select id="profileSex">
+          <option value="female" selected>女性</option>
+          <option value="male">男性</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>身長 (cm)</label>
+        <input type="number" id="profileHeight" value="160" step="0.1">
+      </div>
+      <div>
+        <label>体重 (kg)</label>
+        <input type="number" id="profileWeight" value="55" step="0.1">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div>
+        <label>日常生活の活動レベル</label>
+        <select id="profileActivity">
+          <option value="1.2">座っていることが多い（デスクワーク中心）</option>
+          <option value="1.375" selected>軽い活動（週1〜3日 軽い運動）</option>
+          <option value="1.55">中程度の活動（週3〜5日 中強度の運動）</option>
+          <option value="1.725">活発（週6〜7日 激しい運動）</option>
+          <option value="1.9">非常に活発（肉体労働・毎日激しい運動）</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div>
+        <label>目標（無理のないペースで！）</label>
+        <select id="profileGoal">
+          <option value="-500">しっかり痩せたい（-500kcal/日 ≒ 月-2kg）</option>
+          <option value="-300">ゆっくり痩せたい（-300kcal/日 ≒ 月-1kg）</option>
+          <option value="-150" selected>ゆる〜く痩せたい（-150kcal/日 ≒ 月-500g）</option>
+          <option value="0">今の体重を維持しつつ食事を整える</option>
+          <option value="300">少し増やしたい（+300kcal/日）</option>
+        </select>
+        <p style="font-size:11px; color:#888; margin-top:6px">※「我慢」より「続けられる」が大事。きつくなったらゆるい方に変えてOK</p>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#fff8fb,#f0f8ff); padding:18px; border-radius:14px; margin-top:18px">
+      <h3 style="font-size:14px; color:#ff6b9d; margin-bottom:12px">📊 あなた専用の目安</h3>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px; font-size:13px">
+        <div>
+          <div style="color:#888">基礎代謝 (BMR)</div>
+          <div style="font-size:18px; font-weight:bold; color:#333"><span id="bmrValue">-</span> kcal</div>
+        </div>
+        <div>
+          <div style="color:#888">活動代謝 (TDEE)</div>
+          <div style="font-size:18px; font-weight:bold; color:#333"><span id="tdeeValue">-</span> kcal</div>
+        </div>
+        <div>
+          <div style="color:#888">推奨カロリー</div>
+          <div style="font-size:18px; font-weight:bold; color:#ff6b9d"><span id="recommendCal">-</span> kcal</div>
+        </div>
+        <div>
+          <div style="color:#888">BMI</div>
+          <div style="font-size:18px; font-weight:bold; color:#333"><span id="bmiValue">-</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding-top:14px; border-top:1px dashed #ffd6e8">
+        <div style="font-size:13px; color:#666; margin-bottom:6px">PFC目標 (1日あたり)</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <span style="background:white; padding:6px 12px; border-radius:8px; font-size:13px">🍗 P: <b id="pTargetP" style="color:#ff6b9d">-</b>g</span>
+          <span style="background:white; padding:6px 12px; border-radius:8px; font-size:13px">🥑 F: <b id="pTargetF" style="color:#ffa726">-</b>g</span>
+          <span style="background:white; padding:6px 12px; border-radius:8px; font-size:13px">🍞 C: <b id="pTargetC" style="color:#7dd3c0">-</b>g</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 統計パネル -->
+  <div class="panel" id="stats-panel">
+    <h2>📊 過去7日間の推移</h2>
+    <div class="chart-container">
+      <h2>カロリーバランス</h2>
+      <canvas id="calorieChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <h2>睡眠時間</h2>
+      <canvas id="sleepChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+// 食材データベース (よく食べるものを集めたよ。k=kcal, p=タンパク質g, f=脂質g, c=炭水化物g)
+const FOOD_DB = [
+  // ごはん・パン・麺
+  {n:"ごはん 茶碗1杯", k:234, p:3.8, f:0.5, c:53.4, u:"杯", g:["ご飯","白米","めし","ライス"]},
+  {n:"おにぎり", k:180, p:3.0, f:0.5, c:40, u:"個", g:["おむすび"]},
+  {n:"食パン 6枚切り", k:158, p:5.6, f:2.6, c:28, u:"枚", g:["パン","トースト"]},
+  {n:"食パン 8枚切り", k:120, p:4.2, f:2.0, c:21, u:"枚"},
+  {n:"クロワッサン", k:179, p:3.3, f:10.6, c:18, u:"個"},
+  {n:"菓子パン (あんパン等)", k:280, p:5.0, f:8.0, c:45, u:"個", g:["あんぱん","クリームパン"]},
+  {n:"うどん", k:252, p:6.2, f:0.8, c:52, u:"玉"},
+  {n:"そば", k:264, p:11.5, f:1.6, c:50, u:"玉"},
+  {n:"ラーメン", k:500, p:20, f:18, c:65, u:"杯"},
+  {n:"つけ麺", k:600, p:25, f:18, c:85, u:"杯"},
+  {n:"パスタ (ミートソース)", k:600, p:22, f:20, c:80, u:"皿", g:["スパゲッティ","ミートソース"]},
+  {n:"パスタ (ペペロンチーノ)", k:480, p:14, f:18, c:65, u:"皿"},
+  {n:"カレーライス", k:700, p:15, f:25, c:100, u:"皿", g:["カレー"]},
+  {n:"チャーハン", k:600, p:15, f:22, c:80, u:"皿", g:["焼き飯","ピラフ"]},
+  {n:"焼きそば", k:540, p:14, f:18, c:75, u:"皿", g:["やきそば","ヤキソバ","ソース焼きそば"]},
+  {n:"焼きそば (カップ)", k:480, p:9, f:18, c:70, u:"個", g:["やきそば","カップ焼きそば","UFO","ペヤング"]},
+  {n:"塩焼きそば", k:500, p:14, f:16, c:72, u:"皿", g:["やきそば","しおやきそば"]},
+  {n:"親子丼", k:650, p:25, f:18, c:90, u:"杯"},
+  {n:"牛丼", k:700, p:22, f:25, c:90, u:"杯"},
+  {n:"寿司", k:30, p:2.0, f:0.3, c:5, u:"貫", g:["すし","にぎり"]},
+  // 肉
+  {n:"鶏むね肉 (皮なし)", k:108, p:22.3, f:1.5, c:0, u:"100g", g:["とりむね","チキン"]},
+  {n:"鶏もも肉", k:200, p:16.6, f:14.2, c:0, u:"100g", g:["とりもも","チキン"]},
+  {n:"ささみ", k:105, p:23.0, f:0.8, c:0, u:"100g"},
+  {n:"豚バラ肉", k:386, p:14.4, f:35.4, c:0.1, u:"100g", g:["ぶた","ポーク"]},
+  {n:"豚ロース", k:263, p:19.3, f:19.2, c:0.2, u:"100g"},
+  {n:"牛バラ肉", k:371, p:12.8, f:32.9, c:0.3, u:"100g", g:["ぎゅう","ビーフ"]},
+  {n:"牛ロース", k:318, p:16.5, f:26.1, c:0.2, u:"100g"},
+  {n:"ハンバーグ", k:300, p:18, f:22, c:10, u:"個"},
+  {n:"唐揚げ", k:90, p:4.5, f:5.0, c:5, u:"個", g:["からあげ","フライドチキン"]},
+  {n:"とんかつ", k:450, p:25, f:30, c:20, u:"枚"},
+  {n:"ウインナー", k:65, p:2.7, f:5.6, c:0.9, u:"本", g:["ソーセージ"]},
+  {n:"ベーコン", k:40, p:1.4, f:4.0, c:0.1, u:"枚"},
+  // 魚
+  {n:"鮭 (1切れ)", k:112, p:17.8, f:4.0, c:0.1, u:"切れ", g:["サケ","しゃけ","サーモン"]},
+  {n:"マグロ赤身", k:125, p:26.4, f:1.4, c:0.1, u:"100g", g:["まぐろ","ツナ"]},
+  {n:"サバ", k:247, p:20.6, f:16.8, c:0.3, u:"100g", g:["さば"]},
+  {n:"刺身盛り合わせ", k:200, p:30, f:8, c:2, u:"皿", g:["さしみ"]},
+  {n:"焼き魚", k:150, p:22, f:6, c:0.5, u:"切れ"},
+  {n:"ツナ缶 (オイル)", k:267, p:17.7, f:21.7, c:0.1, u:"缶"},
+  {n:"ツナ缶 (水煮)", k:71, p:16.0, f:0.7, c:0.2, u:"缶"},
+  // 卵・乳製品
+  {n:"卵", k:76, p:6.2, f:5.2, c:0.2, u:"個", g:["たまご","エッグ"]},
+  {n:"目玉焼き", k:110, p:6.5, f:8.5, c:0.3, u:"個"},
+  {n:"オムレツ", k:180, p:11, f:14, c:2, u:"個"},
+  {n:"牛乳 (200ml)", k:134, p:6.6, f:7.6, c:9.6, u:"杯", g:["ミルク"]},
+  {n:"ヨーグルト", k:62, p:3.6, f:3.0, c:4.9, u:"100g"},
+  {n:"チーズ (スライス)", k:68, p:4.5, f:5.2, c:0.3, u:"枚"},
+  {n:"バター", k:75, p:0.1, f:8.1, c:0, u:"10g"},
+  // 野菜
+  {n:"サラダ (一皿)", k:30, p:1.5, f:0.2, c:5, u:"皿"},
+  {n:"野菜炒め", k:200, p:5, f:12, c:18, u:"皿"},
+  {n:"キャベツ", k:23, p:1.3, f:0.2, c:5.2, u:"100g"},
+  {n:"トマト", k:30, p:1.0, f:0.2, c:7, u:"個"},
+  {n:"きゅうり", k:14, p:1.0, f:0.1, c:3, u:"本", g:["キュウリ"]},
+  {n:"アボカド", k:262, p:3.5, f:26, c:8, u:"個"},
+  {n:"ブロッコリー", k:33, p:4.3, f:0.5, c:5.2, u:"100g"},
+  {n:"ほうれん草", k:20, p:2.2, f:0.4, c:3.1, u:"100g", g:["ほうれんそう"]},
+  // 果物
+  {n:"バナナ", k:86, p:1.1, f:0.2, c:22.5, u:"本"},
+  {n:"りんご", k:138, p:0.5, f:0.4, c:36, u:"個", g:["リンゴ","アップル"]},
+  {n:"みかん", k:45, p:0.7, f:0.1, c:12, u:"個", g:["ミカン","オレンジ"]},
+  {n:"いちご", k:7, p:0.1, f:0, c:1.7, u:"粒", g:["イチゴ","ストロベリー"]},
+  {n:"ぶどう", k:60, p:0.4, f:0.1, c:16, u:"房", g:["ブドウ"]},
+  // 豆・大豆
+  {n:"納豆", k:90, p:7.4, f:4.5, c:5.4, u:"パック", g:["なっとう","ナットウ"]},
+  {n:"納豆ごはん", k:324, p:11.2, f:5.0, c:58.8, u:"杯", g:["なっとうごはん"]},
+  {n:"豆腐 (絹)", k:84, p:7.4, f:4.5, c:2.4, u:"半丁", g:["とうふ","キヌ"]},
+  {n:"豆腐 (木綿)", k:108, p:9.9, f:6.3, c:1.8, u:"半丁", g:["もめん"]},
+  {n:"厚揚げ", k:175, p:12.8, f:13, c:0.7, u:"枚", g:["あつあげ"]},
+  {n:"油揚げ", k:80, p:5.6, f:7, c:0.3, u:"枚", g:["あぶらあげ"]},
+  {n:"高野豆腐", k:105, p:10.6, f:6.7, c:2, u:"個", g:["こうやどうふ","凍り豆腐"]},
+  {n:"がんもどき", k:90, p:5, f:7, c:2, u:"個"},
+  {n:"豆乳", k:92, p:7.2, f:4, c:5.8, u:"杯", g:["とうにゅう","ソイミルク"]},
+  {n:"味噌汁", k:40, p:3, f:1.5, c:4, u:"杯", g:["みそ汁","みそしる"]},
+  {n:"豚汁", k:130, p:7, f:8, c:8, u:"杯", g:["とんじる"]},
+  {n:"枝豆", k:135, p:11.7, f:6.2, c:8.8, u:"100g", g:["えだまめ"]},
+  // 海藻類
+  {n:"めかぶ", k:11, p:1.0, f:0.6, c:2.6, u:"パック", g:["メカブ","めかぶ酢"]},
+  {n:"もずく酢", k:30, p:0.6, f:0.1, c:7, u:"パック", g:["モズク","もずく"]},
+  {n:"わかめ (戻し)", k:14, p:1.9, f:0.2, c:5.8, u:"100g", g:["ワカメ","若布"]},
+  {n:"わかめスープ", k:20, p:1.5, f:0.3, c:3, u:"杯"},
+  {n:"海藻サラダ", k:25, p:1.5, f:0.5, c:4, u:"皿", g:["かいそう","海草"]},
+  {n:"ひじきの煮物", k:65, p:2, f:2, c:10, u:"皿", g:["ひじき","ヒジキ"]},
+  {n:"昆布", k:14, p:0.6, f:0.1, c:6, u:"10g", g:["こんぶ","コンブ"]},
+  {n:"のり (焼き海苔)", k:6, p:1.2, f:0.1, c:1.0, u:"枚", g:["海苔","ノリ","のり"]},
+  // 野菜類（追加）
+  {n:"もやし", k:14, p:1.7, f:0.1, c:2.6, u:"100g", g:["モヤシ"]},
+  {n:"人参", k:35, p:0.7, f:0.2, c:9, u:"本", g:["にんじん","ニンジン"]},
+  {n:"大根", k:18, p:0.4, f:0.1, c:4, u:"100g", g:["だいこん","ダイコン"]},
+  {n:"玉ねぎ", k:60, p:1.5, f:0.2, c:14, u:"個", g:["たまねぎ","タマネギ","オニオン"]},
+  {n:"ピーマン", k:8, p:0.3, f:0.1, c:2, u:"個", g:["ぴーまん"]},
+  {n:"なす", k:22, p:1.1, f:0.1, c:5, u:"本", g:["ナス","茄子"]},
+  {n:"かぼちゃ", k:91, p:1.9, f:0.3, c:20, u:"100g", g:["カボチャ","南瓜","パンプキン"]},
+  {n:"じゃがいも", k:76, p:1.6, f:0.1, c:18, u:"個", g:["ジャガイモ","ポテト","馬鈴薯"]},
+  {n:"さつまいも", k:165, p:1.2, f:0.2, c:40, u:"本", g:["サツマイモ","薩摩芋"]},
+  {n:"里芋", k:30, p:1.0, f:0.1, c:7, u:"個", g:["さといも","サトイモ"]},
+  {n:"ごぼう", k:65, p:1.8, f:0.1, c:15, u:"本", g:["ゴボウ","牛蒡"]},
+  {n:"レタス", k:12, p:0.6, f:0.1, c:2.8, u:"100g", g:["れたす"]},
+  {n:"白菜", k:14, p:0.8, f:0.1, c:3.2, u:"100g", g:["はくさい","ハクサイ"]},
+  {n:"しらたき", k:6, p:0.2, f:0, c:3, u:"100g", g:["白滝","シラタキ"]},
+  {n:"こんにゃく", k:5, p:0.1, f:0, c:2.3, u:"100g", g:["コンニャク","蒟蒻"]},
+  {n:"小松菜", k:14, p:1.5, f:0.2, c:2.4, u:"100g", g:["こまつな","コマツナ"]},
+  {n:"水菜", k:23, p:2.2, f:0.1, c:4.8, u:"100g", g:["みずな","ミズナ"]},
+  // きのこ類
+  {n:"しいたけ", k:5, p:0.5, f:0, c:1, u:"個", g:["シイタケ","椎茸"]},
+  {n:"えのき", k:22, p:2.7, f:0.2, c:5, u:"100g", g:["エノキ","えのきだけ"]},
+  {n:"しめじ", k:18, p:2.7, f:0.5, c:3, u:"100g", g:["シメジ","ぶなしめじ"]},
+  {n:"まいたけ", k:16, p:3.7, f:0.7, c:4, u:"100g", g:["マイタケ","舞茸"]},
+  {n:"エリンギ", k:24, p:2.8, f:0.4, c:6, u:"100g", g:["えりんぎ"]},
+  // 和食おかず
+  {n:"ほうれん草のおひたし", k:25, p:3, f:0.4, c:4, u:"皿", g:["おひたし"]},
+  {n:"きんぴらごぼう", k:90, p:2, f:4, c:12, u:"皿", g:["きんぴら"]},
+  {n:"切り干し大根", k:40, p:1.5, f:0.5, c:8, u:"皿", g:["きりぼし"]},
+  {n:"漬物", k:15, p:0.7, f:0.1, c:3, u:"皿", g:["つけもの","ぬか漬け"]},
+  {n:"キムチ", k:23, p:1.3, f:0.1, c:5, u:"50g", g:["きむち"]},
+  {n:"おでん 大根", k:10, p:0.3, f:0.1, c:2, u:"個"},
+  {n:"おでん 卵", k:95, p:7, f:6, c:0.5, u:"個"},
+  {n:"おでん こんにゃく", k:6, p:0.1, f:0, c:1.4, u:"個"},
+  {n:"餃子", k:40, p:2, f:2.5, c:3, u:"個", g:["ぎょうざ","ギョウザ"]},
+  {n:"シュウマイ", k:35, p:1.5, f:2, c:2.5, u:"個", g:["焼売","しゅうまい"]},
+  {n:"春巻き", k:110, p:3, f:6, c:12, u:"本", g:["はるまき","ハルマキ"]},
+  {n:"麻婆豆腐", k:280, p:15, f:18, c:12, u:"皿", g:["マーボー"]},
+  // ご飯類追加
+  {n:"玄米ごはん", k:248, p:4.6, f:1.7, c:53, u:"杯", g:["げんまい","ゲンマイ"]},
+  {n:"雑穀米", k:240, p:5, f:1, c:52, u:"杯", g:["ざっこく"]},
+  {n:"お粥", k:70, p:1.2, f:0.2, c:15.6, u:"杯", g:["おかゆ","オカユ"]},
+  {n:"雑炊", k:200, p:8, f:4, c:30, u:"杯", g:["ぞうすい"]},
+  // 朝食
+  {n:"シリアル", k:150, p:3, f:1.5, c:32, u:"40g", g:["しりある","コーンフレーク"]},
+  {n:"グラノーラ", k:175, p:3.5, f:6, c:26, u:"40g", g:["ぐらのーら"]},
+  {n:"スムージー", k:120, p:2, f:0.5, c:28, u:"杯", g:["すむーじー"]},
+  // お菓子（コンビニで買えるもの中心）
+  {n:"ポテトチップス", k:332, p:3.0, f:22, c:32, u:"袋", g:["ポテチ"]},
+  {n:"チョコレート (板)", k:280, p:3.5, f:17, c:28, u:"枚", g:["チョコ"]},
+  {n:"アイスクリーム", k:200, p:4, f:12, c:20, u:"個", g:["アイス"]},
+  {n:"ガリガリ君", k:69, p:0, f:0, c:17, u:"本", g:["がりがりくん","アイス"]},
+  {n:"ハーゲンダッツ", k:244, p:4.6, f:16, c:20, u:"個", g:["はーげんだっつ","アイス"]},
+  {n:"クッキー", k:50, p:0.6, f:2.5, c:7, u:"枚"},
+  {n:"カントリーマアム", k:50, p:0.5, f:2.5, c:6.5, u:"個", g:["かんとりーまあむ"]},
+  {n:"アルフォート", k:56, p:0.7, f:3.0, c:6.5, u:"枚", g:["あるふぉーと"]},
+  {n:"ハッピーターン", k:109, p:1.2, f:5.5, c:13, u:"袋", g:["はっぴーたーん"]},
+  {n:"柿の種", k:250, p:7.0, f:9.0, c:35, u:"袋", g:["かきのたね"]},
+  {n:"きのこの山", k:330, p:4, f:19, c:36, u:"箱"},
+  {n:"たけのこの里", k:305, p:3.5, f:17, c:35, u:"箱"},
+  {n:"ポッキー", k:200, p:3.0, f:9, c:27, u:"袋", g:["ぽっきー"]},
+  {n:"ハイチュウ", k:17, p:0, f:0.3, c:3.8, u:"粒", g:["はいちゅう","グミ"]},
+  {n:"グミ", k:195, p:5, f:0.1, c:43, u:"袋"},
+  {n:"ケーキ (ショート)", k:340, p:5, f:18, c:40, u:"個"},
+  {n:"チーズケーキ", k:280, p:6, f:17, c:25, u:"個"},
+  {n:"ガトーショコラ", k:280, p:5, f:18, c:24, u:"個"},
+  {n:"ティラミス", k:320, p:6, f:21, c:25, u:"個", g:["てぃらみす"]},
+  {n:"モンブラン", k:380, p:6, f:22, c:38, u:"個", g:["もんぶらん"]},
+  {n:"ミルクレープ", k:250, p:5, f:14, c:25, u:"個"},
+  {n:"シュークリーム", k:230, p:5, f:14, c:21, u:"個", g:["しゅーくりーむ"]},
+  {n:"ドーナツ", k:220, p:3, f:11, c:27, u:"個", g:["どーなつ"]},
+  {n:"マカロン", k:70, p:1.2, f:3, c:9.5, u:"個", g:["まかろん"]},
+  {n:"マドレーヌ", k:130, p:2, f:7, c:14, u:"個", g:["まどれーぬ"]},
+  {n:"フィナンシェ", k:160, p:2, f:9, c:16, u:"個", g:["ふぃなんしぇ"]},
+  {n:"パンケーキ", k:350, p:8, f:12, c:50, u:"皿", g:["ぱんけーき","ホットケーキ"]},
+  {n:"プリン", k:130, p:5, f:4.5, c:18, u:"個"},
+  {n:"せんべい", k:50, p:0.7, f:0.1, c:11.3, u:"枚", g:["煎餅"]},
+  {n:"どら焼き", k:240, p:5, f:2, c:50, u:"個", g:["どらやき"]},
+  {n:"大福", k:200, p:4, f:0.5, c:46, u:"個", g:["だいふく"]},
+  {n:"たい焼き", k:220, p:4.5, f:1, c:48, u:"個", g:["たいやき"]},
+  {n:"団子", k:150, p:2.5, f:0.4, c:34, u:"本", g:["だんご","みたらし"]},
+  {n:"カステラ", k:160, p:3, f:2, c:32, u:"切れ", g:["かすてら"]},
+  // 飲み物
+  {n:"コーヒー (ブラック)", k:5, p:0.2, f:0, c:0.7, u:"杯"},
+  {n:"カフェラテ", k:90, p:5, f:4.5, c:7, u:"杯"},
+  {n:"オレンジジュース", k:92, p:1.4, f:0.2, c:21, u:"杯", g:["オレンジ"]},
+  {n:"コーラ", k:140, p:0, f:0, c:35, u:"缶"},
+  {n:"ビール", k:140, p:1, f:0, c:10.5, u:"缶", g:["びーる"]},
+  {n:"ワイン (グラス)", k:88, p:0.1, f:0, c:2, u:"杯"},
+  {n:"日本酒", k:185, p:0.7, f:0, c:8.8, u:"合", g:["にほんしゅ"]},
+  {n:"梅酒", k:155, p:0.1, f:0, c:20, u:"杯"},
+  {n:"プロテイン", k:120, p:20, f:1.5, c:3, u:"杯"},
+  // ファストフード
+  {n:"ハンバーガー", k:265, p:12, f:11, c:28, u:"個"},
+  {n:"ビッグマック", k:530, p:26, f:28, c:42, u:"個"},
+  {n:"ポテト (M)", k:410, p:5, f:22, c:50, u:"個"},
+  {n:"ピザ (1切れ)", k:200, p:9, f:8, c:25, u:"切れ"},
+  // 揚げ物
+  {n:"コロッケ (ポテト)", k:190, p:4.5, f:10, c:22, u:"個", g:["ころっけ","コロッケ","ポテトコロッケ"]},
+  {n:"カニクリームコロッケ", k:220, p:7, f:13, c:20, u:"個", g:["かにくりーむころっけ","クリームコロッケ"]},
+  {n:"メンチカツ", k:280, p:14, f:18, c:18, u:"個", g:["めんちかつ","ミンチカツ"]},
+  {n:"チキンカツ", k:320, p:22, f:18, c:18, u:"枚", g:["ちきんかつ"]},
+  {n:"エビフライ", k:120, p:10, f:6, c:8, u:"本", g:["えびふらい","海老フライ"]},
+  {n:"アジフライ", k:180, p:14, f:10, c:9, u:"枚", g:["あじふらい","鯵フライ"]},
+  {n:"イカフライ", k:160, p:12, f:8, c:10, u:"枚", g:["いかふらい"]},
+  {n:"白身魚フライ", k:200, p:14, f:11, c:13, u:"枚", g:["しろみさかなふらい"]},
+  {n:"天ぷら (海老)", k:80, p:5, f:4, c:7, u:"本", g:["てんぷら","えびてん"]},
+  {n:"天ぷら (野菜)", k:70, p:1, f:4, c:7, u:"個", g:["てんぷら","野菜天"]},
+  {n:"天丼", k:800, p:20, f:25, c:110, u:"杯", g:["てんどん"]},
+  {n:"かき揚げ", k:220, p:6, f:14, c:18, u:"個", g:["かきあげ"]},
+  // 定食・セットメニュー
+  {n:"焼き魚定食", k:550, p:30, f:12, c:70, u:"食", g:["やきさかなていしょく"]},
+  {n:"唐揚げ定食", k:850, p:35, f:35, c:90, u:"食", g:["からあげていしょく"]},
+  {n:"とんかつ定食", k:950, p:35, f:45, c:90, u:"食", g:["とんかつていしょく"]},
+  {n:"生姜焼き定食", k:750, p:28, f:28, c:80, u:"食", g:["しょうがやきていしょく"]},
+  {n:"生姜焼き", k:300, p:18, f:18, c:12, u:"皿", g:["しょうがやき"]},
+  {n:"肉じゃが", k:250, p:10, f:8, c:35, u:"皿", g:["にくじゃが"]},
+  {n:"筑前煮", k:180, p:8, f:6, c:22, u:"皿", g:["ちくぜんに"]},
+  {n:"煮魚", k:180, p:20, f:8, c:8, u:"切れ", g:["にさかな","煮付け"]},
+  {n:"鶏の照り焼き", k:280, p:22, f:16, c:10, u:"枚", g:["てりやき"]},
+  {n:"サバの味噌煮", k:250, p:20, f:14, c:8, u:"切れ", g:["さばみそ","鯖味噌"]},
+  // コンビニ・外食
+  {n:"幕の内弁当", k:700, p:20, f:20, c:100, u:"個", g:["まくのうち","弁当","べんとう"]},
+  {n:"のり弁当", k:650, p:16, f:18, c:95, u:"個", g:["のりべん","海苔弁"]},
+  {n:"唐揚げ弁当", k:900, p:30, f:35, c:100, u:"個", g:["からあげべんとう"]},
+  {n:"サンドイッチ", k:310, p:12, f:14, c:34, u:"個", g:["さんどいっち"]},
+  {n:"おにぎり (鮭)", k:185, p:6, f:2, c:36, u:"個", g:["さけおにぎり"]},
+  {n:"おにぎり (ツナマヨ)", k:210, p:5, f:5, c:36, u:"個", g:["つなまよ"]},
+  {n:"おにぎり (梅)", k:170, p:3.5, f:0.5, c:37, u:"個", g:["うめ"]},
+  {n:"冷やし中華", k:520, p:18, f:12, c:82, u:"皿", g:["ひやしちゅうか"]},
+  {n:"そうめん", k:220, p:6, f:0.8, c:47, u:"束", g:["ソーメン"]},
+  {n:"冷凍ギョーザ", k:200, p:9, f:10, c:20, u:"6個", g:["れいとうぎょうざ"]},
+  {n:"たこ焼き", k:50, p:2, f:2.5, c:5, u:"個", g:["タコ焼き","たこやき"]},
+  {n:"お好み焼き", k:480, p:18, f:20, c:55, u:"枚", g:["おこのみやき"]},
+];
+
+// 運動METs値 (1MET = 1kcal/kg/時間)
+const EXERCISE_METS = {
+  "散歩": 2.5,
+  "ウォーキング": 3.5,
+  "早歩き": 5.0,
+  "ジョギング": 8.3,
+  "ランニング": 10.0,
+  "サイクリング": 6.8,
+  "水泳ゆっくり": 6.0,
+  "水泳速め": 9.8,
+  "ヨガ": 2.5,
+  "ピラティス": 3.0,
+  "ストレッチ": 2.3,
+  "筋トレ軽め": 3.5,
+  "筋トレ普通": 5.0,
+  "筋トレ激しめ": 6.0,
+  "ダンス": 5.0,
+  "エアロビクス": 6.5,
+  "階段昇降": 8.0,
+  "掃除": 3.5,
+};
+
+// 自作食材を読み込んで FOOD_DB にマージ
+const customFoods = JSON.parse(localStorage.getItem('customFoods') || '[]');
+customFoods.forEach(f => { f.custom = true; FOOD_DB.unshift(f); });
+
+// データ管理
+let data = JSON.parse(localStorage.getItem('dietData') || '{}');
+let goals = JSON.parse(localStorage.getItem('dietGoals') || '{}');
+// デフォルト値
+const defaultGoals = {calorie:1800, burn:300, sleep:8, weight:55, height:160, age:30, sex:'female', activity:1.375, goalAdj:-150, autoCalorie:true};
+goals = Object.assign({}, defaultGoals, goals);
+let currentDate = new Date().toISOString().split('T')[0];
+let selectedFood = null;
+
+document.getElementById('currentDate').value = currentDate;
+document.getElementById('calorieGoal').value = goals.calorie;
+document.getElementById('burnGoal').value = goals.burn;
+document.getElementById('sleepGoal').value = goals.sleep;
+document.getElementById('profileAge').value = goals.age;
+document.getElementById('profileSex').value = goals.sex;
+document.getElementById('profileHeight').value = goals.height;
+document.getElementById('profileWeight').value = goals.weight;
+document.getElementById('profileActivity').value = goals.activity;
+document.getElementById('profileGoal').value = goals.goalAdj;
+
+// 日付変更
+document.getElementById('currentDate').addEventListener('change', (e) => {
+  currentDate = e.target.value;
+  render();
+});
+
+// 目標更新
+['calorieGoal','burnGoal','sleepGoal'].forEach(id => {
+  document.getElementById(id).addEventListener('change', (e) => {
+    if(id==='calorieGoal') { goals.calorie = +e.target.value; goals.autoCalorie = false; }
+    if(id==='burnGoal') goals.burn = +e.target.value;
+    if(id==='sleepGoal') goals.sleep = +e.target.value;
+    saveGoals();
+    render();
+  });
+});
+
+// プロフィール更新
+['profileAge','profileSex','profileHeight','profileWeight','profileActivity','profileGoal'].forEach(id => {
+  document.getElementById(id).addEventListener('change', (e) => {
+    if(id==='profileAge') goals.age = +e.target.value;
+    if(id==='profileSex') goals.sex = e.target.value;
+    if(id==='profileHeight') goals.height = +e.target.value;
+    if(id==='profileWeight') goals.weight = +e.target.value;
+    if(id==='profileActivity') goals.activity = +e.target.value;
+    if(id==='profileGoal') goals.goalAdj = +e.target.value;
+    goals.autoCalorie = true; // プロフィール変更時はカロリー自動計算をONに戻す
+    updateProfileCalc();
+    saveGoals();
+    render();
+    calcExerciseCalories();
+  });
+});
+
+function saveGoals() { localStorage.setItem('dietGoals', JSON.stringify(goals)); }
+
+// === プロフィール計算 (Mifflin-St Jeor式) ===
+function calcBMR() {
+  const w = goals.weight, h = goals.height, a = goals.age;
+  return goals.sex === 'male'
+    ? Math.round(10*w + 6.25*h - 5*a + 5)
+    : Math.round(10*w + 6.25*h - 5*a - 161);
+}
+function updateProfileCalc() {
+  const bmr = calcBMR();
+  const tdee = Math.round(bmr * goals.activity);
+  const recommend = Math.max(1500, tdee + goals.goalAdj); // 最低1500kcalは確保（無理しないため）
+  const bmi = (goals.weight / ((goals.height/100)**2)).toFixed(1);
+  document.getElementById('bmrValue').textContent = bmr;
+  document.getElementById('tdeeValue').textContent = tdee;
+  document.getElementById('recommendCal').textContent = recommend;
+  document.getElementById('bmiValue').textContent = bmi;
+  // PFCバランス（ダイエット推奨: P25%, F25%, C50%）
+  const pTarget = Math.round(recommend * 0.25 / 4);
+  const fTarget = Math.round(recommend * 0.25 / 9);
+  const cTarget = Math.round(recommend * 0.50 / 4);
+  document.getElementById('pTargetP').textContent = pTarget;
+  document.getElementById('pTargetF').textContent = fTarget;
+  document.getElementById('pTargetC').textContent = cTarget;
+  // 自動カロリー目標
+  if(goals.autoCalorie) {
+    goals.calorie = recommend;
+    document.getElementById('calorieGoal').value = recommend;
+  }
+  goals.pTarget = pTarget;
+  goals.fTarget = fTarget;
+  goals.cTarget = cTarget;
+}
+
+// === 食材検索機能 ===
+const searchInput = document.getElementById('foodSearch');
+const suggestBox = document.getElementById('foodSuggestions');
+
+// カタカナ→ひらがな変換（検索を緩くするため）
+function toHira(str) {
+  return str.replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+
+// === 自作食材の追加 ===
+function openCustomFoodForm() {
+  document.getElementById('customFoodForm').style.display = 'block';
+  document.getElementById('cfName').focus();
+}
+function closeCustomFoodForm() {
+  document.getElementById('customFoodForm').style.display = 'none';
+  ['cfName','cfKcal','cfUnit','cfP','cfF','cfC'].forEach(id => document.getElementById(id).value = '');
+}
+function saveCustomFood() {
+  const name = document.getElementById('cfName').value.trim();
+  const kcal = +document.getElementById('cfKcal').value;
+  const unit = document.getElementById('cfUnit').value.trim();
+  if(!name || !kcal || !unit) {
+    alert('名前・カロリー・単位は必須だよ');
+    return;
+  }
+  const food = {
+    n: name,
+    k: kcal,
+    u: unit,
+    p: +document.getElementById('cfP').value || 0,
+    f: +document.getElementById('cfF').value || 0,
+    c: +document.getElementById('cfC').value || 0,
+    custom: true,
+  };
+  // 保存
+  customFoods.push(food);
+  localStorage.setItem('customFoods', JSON.stringify(customFoods));
+  // 即座に検索可能に
+  FOOD_DB.unshift(food);
+  // 追加した食材をすぐ選択状態に
+  closeCustomFoodForm();
+  selectFoodByIdx(0);
+  alert(`「${name}」を登録したよ！次から検索で出てくるよ✨`);
+}
+
+searchInput.addEventListener('input', (e) => {
+  const q = toHira(e.target.value.trim().toLowerCase());
+  if(!q) { suggestBox.style.display = 'none'; return; }
+  const matches = FOOD_DB.filter(f => {
+    const all = toHira([f.n, ...(f.g||[])].join(' ').toLowerCase());
+    return all.includes(q);
+  }).slice(0, 8);
+  if(matches.length === 0) {
+    suggestBox.innerHTML = '<div style="padding:14px; color:#888; font-size:13px">候補がないよ。下の「食事内容」に手入力できます</div>';
+  } else {
+    suggestBox.innerHTML = matches.map((f,i) =>
+      `<div style="padding:10px 14px; border-bottom:1px solid #f5f5f5; display:flex; justify-content:space-between; align-items:center; gap:8px">
+        <div data-food-select="${FOOD_DB.indexOf(f)}" style="flex:1; cursor:pointer; min-width:0" onmouseover="this.style.color='#ff6b9d'" onmouseout="this.style.color=''">
+          <div style="font-size:14px">${f.n}</div>
+          <div style="color:#888; font-size:11px">${f.k}kcal/${f.u}</div>
+        </div>
+        <button data-food-quick="${FOOD_DB.indexOf(f)}" style="background:#ff6b9d; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap">+ 追加</button>
+      </div>`
+    ).join('');
+    suggestBox.querySelectorAll('[data-food-select]').forEach(el => {
+      el.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        selectFoodByIdx(+el.dataset.foodSelect);
+      });
+    });
+    suggestBox.querySelectorAll('[data-food-quick]').forEach(el => {
+      el.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        quickAddFood(+el.dataset.foodQuick);
+      });
+    });
+  }
+  suggestBox.style.display = 'block';
+});
+searchInput.addEventListener('blur', () => setTimeout(() => suggestBox.style.display='none', 200));
+searchInput.addEventListener('focus', (e) => { if(e.target.value) e.target.dispatchEvent(new Event('input')); });
+
+function autoMealType() {
+  const h = new Date().getHours();
+  if(h >= 5 && h < 10) return '朝食';
+  if(h >= 10 && h < 15) return '昼食';
+  if(h >= 17 && h < 22) return '夕食';
+  return '間食';
+}
+
+function quickAddFood(idx) {
+  const f = FOOD_DB[idx];
+  const type = autoMealType();
+  const time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  getDay(currentDate).meals.push({
+    name: `${f.n} × 1${f.u}`,
+    cal: f.k,
+    type, time,
+    p: +(f.p||0).toFixed(1),
+    f: +(f.f||0).toFixed(1),
+    c: +(f.c||0).toFixed(1),
+  });
+  searchInput.value = '';
+  suggestBox.style.display = 'none';
+  save();
+  // ふわっと知らせる
+  showToast(`${f.n} を${type}に追加したよ ✨`);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if(!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#ff6b9d; color:white; padding:12px 20px; border-radius:24px; box-shadow:0 4px 16px rgba(255,107,157,0.4); font-size:14px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+}
+
+function selectFoodByIdx(idx) {
+  const f = FOOD_DB[idx];
+  selectedFood = {name: f.n, kcalPerUnit: f.k, unit: f.u, foodObj: f};
+  document.getElementById('selectedFood').style.display = 'block';
+  document.getElementById('selectedFoodName').textContent = f.n;
+  document.getElementById('foodUnit').value = f.u;
+  document.getElementById('mealName').value = f.n;
+  document.getElementById('foodAmount').value = 1;
+  recalcMealCalories();
+  searchInput.value = '';
+  suggestBox.style.display = 'none';
+}
+
+function clearSelectedFood() {
+  selectedFood = null;
+  document.getElementById('selectedFood').style.display = 'none';
+  document.getElementById('mealName').value = '';
+  document.getElementById('mealCalories').value = '';
+}
+
+function recalcMealCalories() {
+  if(!selectedFood) return;
+  const amt = +document.getElementById('foodAmount').value || 0;
+  document.getElementById('mealCalories').value = Math.round(selectedFood.kcalPerUnit * amt);
+}
+document.getElementById('foodAmount').addEventListener('input', recalcMealCalories);
+
+// === 運動カロリー自動計算 ===
+function calcExerciseCalories() {
+  const type = document.getElementById('exerciseType').value;
+  const dur = +document.getElementById('exerciseDuration').value || 0;
+  const weight = goals.weight || 55;
+  const mets = EXERCISE_METS[type] || 3.5;
+  // kcal = METs × weight(kg) × hours
+  const kcal = Math.round(mets * weight * (dur/60));
+  document.getElementById('exerciseCalories').textContent = kcal;
+  return kcal;
+}
+document.getElementById('exerciseType').addEventListener('change', calcExerciseCalories);
+document.getElementById('exerciseDuration').addEventListener('input', calcExerciseCalories);
+calcExerciseCalories();
+
+// タブ切替
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+    if(tab.dataset.tab === 'stats') renderCharts();
+  });
+});
+
+function getDay(date) {
+  if(!data[date]) data[date] = {meals:[], exercises:[], sleep:null};
+  return data[date];
+}
+
+function save() {
+  localStorage.setItem('dietData', JSON.stringify(data));
+  render();
+}
+
+function addMeal() {
+  const name = document.getElementById('mealName').value.trim();
+  const cal = +document.getElementById('mealCalories').value;
+  const type = document.getElementById('mealType').value;
+  const amt = selectedFood ? +document.getElementById('foodAmount').value : null;
+  if(!name) { alert('食事内容を入力してね'); return; }
+  const time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  if(!cal) {
+    const manual = prompt('カロリーを入力してね (kcal)');
+    if(!manual || isNaN(+manual)) return;
+    getDay(currentDate).meals.push({name, cal: +manual, type, time, p:0, f:0, c:0});
+  } else if(selectedFood && selectedFood.foodObj) {
+    const fo = selectedFood.foodObj;
+    const displayName = `${name} × ${amt}${selectedFood.unit}`;
+    getDay(currentDate).meals.push({
+      name: displayName, cal, type, time,
+      p: +(fo.p * amt).toFixed(1),
+      f: +(fo.f * amt).toFixed(1),
+      c: +(fo.c * amt).toFixed(1),
+    });
+  } else {
+    getDay(currentDate).meals.push({name, cal, type, time, p:0, f:0, c:0});
+  }
+  clearSelectedFood();
+  save();
+}
+
+function addExercise() {
+  const type = document.getElementById('exerciseType').value;
+  const dur = +document.getElementById('exerciseDuration').value;
+  const cal = calcExerciseCalories();
+  if(!dur) { alert('時間を入力してね'); return; }
+  if(!cal) { alert('体重を入力してね'); return; }
+  getDay(currentDate).exercises.push({type, dur, cal});
+  save();
+}
+
+function addSleep() {
+  const start = document.getElementById('sleepStart').value;
+  const end = document.getElementById('sleepEnd').value;
+  const quality = document.getElementById('sleepQuality').value;
+  if(!start || !end) { alert('時間を入力してね'); return; }
+  // 睡眠時間計算
+  const [sh,sm] = start.split(':').map(Number);
+  const [eh,em] = end.split(':').map(Number);
+  let hours = (eh + em/60) - (sh + sm/60);
+  if(hours < 0) hours += 24;
+  getDay(currentDate).sleep = {start, end, quality, hours: hours.toFixed(1)};
+  save();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify({data, goals}, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'diet-data-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if(imported.data) data = imported.data;
+      if(imported.goals) goals = imported.goals;
+      localStorage.setItem('dietData', JSON.stringify(data));
+      localStorage.setItem('dietGoals', JSON.stringify(goals));
+      alert('データを復元しました！');
+      location.reload();
+    } catch(err) {
+      alert('ファイルの読み込みに失敗しました');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function deleteMeal(i) { getDay(currentDate).meals.splice(i,1); save(); }
+function deleteExercise(i) { getDay(currentDate).exercises.splice(i,1); save(); }
+function deleteSleep() { getDay(currentDate).sleep = null; save(); }
+
+function render() {
+  const day = getDay(currentDate);
+  // 食事リスト
+  const mealList = document.getElementById('mealList');
+  if(day.meals.length === 0) {
+    mealList.innerHTML = '<div class="empty">まだ食事の記録がないよ</div>';
+  } else {
+    mealList.innerHTML = day.meals.map((m,i)=>`
+      <div class="record-item">
+        <div class="record-info">
+          <div class="record-name">${m.type}: ${m.name}</div>
+          <div class="record-detail">${m.cal} kcal · ${m.time||''}</div>
+        </div>
+        <button class="delete-btn" onclick="deleteMeal(${i})">削除</button>
+      </div>`).join('');
+  }
+  // 運動リスト
+  const exList = document.getElementById('exerciseList');
+  if(day.exercises.length === 0) {
+    exList.innerHTML = '<div class="empty">まだ運動の記録がないよ</div>';
+  } else {
+    exList.innerHTML = day.exercises.map((e,i)=>`
+      <div class="record-item">
+        <div class="record-info">
+          <div class="record-name">${e.type}</div>
+          <div class="record-detail">${e.dur}分 · ${e.cal} kcal消費</div>
+        </div>
+        <button class="delete-btn" onclick="deleteExercise(${i})">削除</button>
+      </div>`).join('');
+  }
+  // 睡眠リスト
+  const sleepList = document.getElementById('sleepList');
+  if(!day.sleep) {
+    sleepList.innerHTML = '<div class="empty">まだ睡眠の記録がないよ</div>';
+  } else {
+    sleepList.innerHTML = `
+      <div class="record-item">
+        <div class="record-info">
+          <div class="record-name">${day.sleep.start} → ${day.sleep.end} (${day.sleep.hours}時間)</div>
+          <div class="record-detail">睡眠の質: ${day.sleep.quality}</div>
+        </div>
+        <button class="delete-btn" onclick="deleteSleep()">削除</button>
+      </div>`;
+  }
+  // サマリー
+  const totalCal = day.meals.reduce((s,m)=>s+m.cal, 0);
+  const burnedCal = day.exercises.reduce((s,e)=>s+e.cal, 0);
+  const sleepHrs = day.sleep ? +day.sleep.hours : 0;
+  document.getElementById('totalCalories').textContent = totalCal;
+  document.getElementById('burnedCalories').textContent = burnedCal;
+  document.getElementById('totalSleep').textContent = sleepHrs;
+  document.getElementById('netCalories').innerHTML = (totalCal - burnedCal) + '<span class="unit">kcal</span>';
+  document.getElementById('caloriesProgress').style.width = Math.min(100, (totalCal/goals.calorie)*100) + '%';
+  document.getElementById('burnedProgress').style.width = Math.min(100, (burnedCal/goals.burn)*100) + '%';
+  document.getElementById('sleepProgress').style.width = Math.min(100, (sleepHrs/goals.sleep)*100) + '%';
+
+  // PFCバランス
+  const pTotal = +day.meals.reduce((s,m)=>s+(m.p||0), 0).toFixed(1);
+  const fTotal = +day.meals.reduce((s,m)=>s+(m.f||0), 0).toFixed(1);
+  const cTotal = +day.meals.reduce((s,m)=>s+(m.c||0), 0).toFixed(1);
+  const pTarget = goals.pTarget || 100;
+  const fTarget = goals.fTarget || 50;
+  const cTarget = goals.cTarget || 200;
+  document.getElementById('pTotal').textContent = pTotal;
+  document.getElementById('fTotal').textContent = fTotal;
+  document.getElementById('cTotal').textContent = cTotal;
+  document.getElementById('pGoal').textContent = pTarget;
+  document.getElementById('fGoal').textContent = fTarget;
+  document.getElementById('cGoal').textContent = cTarget;
+  document.getElementById('pBar').style.width = Math.min(100, (pTotal/pTarget)*100) + '%';
+  document.getElementById('fBar').style.width = Math.min(100, (fTotal/fTarget)*100) + '%';
+  document.getElementById('cBar').style.width = Math.min(100, (cTotal/cTarget)*100) + '%';
+  document.getElementById('pfcGoalText').textContent = `目標: ${goals.calorie}kcal`;
+
+  // 食材提案
+  showSuggestion(pTotal, fTotal, cTotal, pTarget, fTarget, cTarget, totalCal);
+}
+
+function showSuggestion(p, f, c, pT, fT, cT, totalCal) {
+  const sgEl = document.getElementById('suggestion');
+  const remaining = goals.calorie - totalCal;
+  if(totalCal === 0) {
+    sgEl.style.display = 'block';
+    sgEl.innerHTML = `💡 まだ今日の食事を記録してないね。あと <b>${goals.calorie}kcal</b> 摂れるよ`;
+    return;
+  }
+  // 不足している栄養素を判定
+  const pPct = p/pT, fPct = f/fT, cPct = c/cT;
+  const messages = [];
+  let needTag = null;
+  if(pPct < 0.7) {
+    needTag = 'protein';
+    // 高タンパク質食材ベスト5（タンパク質/カロリー比が高いもの）
+    const proteinFoods = FOOD_DB.filter(x => x.p >= 6 && x.k <= 250)
+      .sort((a,b) => (b.p/b.k) - (a.p/a.k)).slice(0,5);
+    messages.push(`🍗 <b>タンパク質が足りない！</b> あと <b>${(pT-p).toFixed(1)}g</b> 必要。おすすめ: <b>${proteinFoods.map(x=>x.n).join('、')}</b>`);
+  }
+  if(fPct > 1.0) {
+    messages.push(`🥑 <b>脂質を摂りすぎ！</b> 今日はもう脂っこいものは控えめに。サラダや刺身、果物がおすすめ`);
+  } else if(fPct < 0.5 && totalCal > goals.calorie * 0.5) {
+    messages.push(`🥑 脂質が少なめ。アボカド、ナッツ、卵、チーズで良質な脂を摂ろう`);
+  }
+  if(cPct > 1.1) {
+    messages.push(`🍞 <b>炭水化物を摂りすぎ！</b> ご飯やパンは控えめにして、タンパク質と野菜を増やそう`);
+  }
+  if(remaining < 0) {
+    messages.push(`⚠️ 目標カロリーを <b>${Math.abs(remaining)}kcal</b> オーバー！運動で消費しよう`);
+  } else if(remaining < 200 && remaining > 0) {
+    messages.push(`✨ あと <b>${remaining}kcal</b>。低カロリーな野菜・果物・ヨーグルトがおすすめ`);
+  } else if(messages.length === 0 && pPct >= 0.7 && fPct >= 0.5 && cPct >= 0.7) {
+    messages.push(`💯 PFCバランス良好！この調子で頑張ろう`);
+  } else if(messages.length === 0) {
+    messages.push(`👍 順調に記録できてるよ！残り <b>${remaining}kcal</b>`);
+  }
+  sgEl.style.display = 'block';
+  sgEl.innerHTML = messages.join('<br>');
+}
+
+let calorieChart, sleepChart;
+function renderCharts() {
+  // 過去7日間
+  const days = [];
+  for(let i=6; i>=0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+  const labels = days.map(d => d.slice(5).replace('-','/'));
+  const intake = days.map(d => (data[d]?.meals||[]).reduce((s,m)=>s+m.cal,0));
+  const burned = days.map(d => (data[d]?.exercises||[]).reduce((s,e)=>s+e.cal,0));
+  const sleep = days.map(d => data[d]?.sleep ? +data[d].sleep.hours : 0);
+
+  if(calorieChart) calorieChart.destroy();
+  calorieChart = new Chart(document.getElementById('calorieChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'摂取カロリー', data:intake, backgroundColor:'#ff6b9d'},
+        {label:'消費カロリー', data:burned, backgroundColor:'#7dd3c0'}
+      ]
+    },
+    options: {responsive:true, plugins:{legend:{position:'top'}}}
+  });
+
+  if(sleepChart) sleepChart.destroy();
+  sleepChart = new Chart(document.getElementById('sleepChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label:'睡眠時間 (時間)',
+        data:sleep,
+        borderColor:'#a78bfa',
+        backgroundColor:'rgba(167,139,250,0.2)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {responsive:true, scales:{y:{min:0, max:12}}}
+  });
+}
+
+// 初期化
+updateProfileCalc();
+render();
+// 食事区分を時間帯で自動セット
+document.getElementById('mealType').value = autoMealType();
+</script>
+</body>
+</html>
