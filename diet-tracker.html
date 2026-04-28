@@ -358,42 +358,31 @@
         <button onclick="closeCustomFoodForm()" style="background:none; border:none; color:#888; cursor:pointer; font-size:18px">✕</button>
       </div>
       <p style="font-size:12px; color:#888; margin-bottom:10px">よく食べるものを登録すると、次から検索で出てくるよ</p>
-      <div style="margin-bottom:12px; background:#fff0f6; padding:12px; border-radius:8px">
-        <label style="display:flex; align-items:center; gap:8px; font-size:14px; color:#ff6b9d; font-weight:600; cursor:pointer">
-          <input type="checkbox" id="cfGMode" onchange="toggleGMode()" style="width:18px; height:18px">
-          g（グラム）単位で管理する
-        </label>
-        <div id="gModeHint" style="display:none; font-size:12px; color:#888; margin-top:6px">
-          100gあたりのカロリーを入力してください。追加時に「何g食べたか」を入力すると自動計算されます。
-        </div>
-      </div>
       <div class="form-row">
         <div>
           <label>名前 <span style="color:red">*</span></label>
-          <input type="text" id="cfName" placeholder="例: コロッケ、なす">
+          <input type="text" id="cfName" placeholder="例: コンビニのおにぎり">
         </div>
         <div>
-          <label id="cfKcalLabel">カロリー（1個・1枚あたり） <span style="color:red">*</span></label>
-          <input type="number" id="cfKcal" placeholder="例: 190">
-        </div>
-      </div>
-      <div class="form-row" id="cfUnitRow">
-        <div>
-          <label>単位 <span style="color:red">*</span></label>
-          <input type="text" id="cfUnit" placeholder="例: 個・杯・枚">
+          <label>1単位あたりのカロリー <span style="color:red">*</span></label>
+          <input type="number" id="cfKcal" placeholder="例: 180">
         </div>
       </div>
       <div class="form-row">
+        <div>
+          <label>単位 <span style="color:red">*</span></label>
+          <input type="text" id="cfUnit" placeholder="例: 個、杯、皿、本、100g">
+        </div>
         <div>
           <label>タンパク質 (g)</label>
           <input type="number" id="cfP" step="0.1" placeholder="任意">
         </div>
+      </div>
+      <div class="form-row">
         <div>
           <label>脂質 (g)</label>
           <input type="number" id="cfF" step="0.1" placeholder="任意">
         </div>
-      </div>
-      <div class="form-row">
         <div>
           <label>炭水化物 (g)</label>
           <input type="number" id="cfC" step="0.1" placeholder="任意">
@@ -654,13 +643,13 @@ const FOOD_DB = [
   {n:"牛丼", k:700, p:22, f:25, c:90, u:"杯"},
   {n:"寿司", k:30, p:2.0, f:0.3, c:5, u:"貫", g:["すし","にぎり"]},
   // 肉
-  {n:"鶏むね肉 (皮なし)", k:108, p:22.3, f:1.5, c:0, u:"g", per100g:true, g:["とりむね","チキン"]},
-  {n:"鶏もも肉", k:200, p:16.6, f:14.2, c:0, u:"g", per100g:true, g:["とりもも","チキン"]},
-  {n:"ささみ", k:105, p:23.0, f:0.8, c:0, u:"g", per100g:true},
-  {n:"豚バラ肉", k:386, p:14.4, f:35.4, c:0.1, u:"g", per100g:true, g:["ぶた","ポーク"]},
-  {n:"豚ロース", k:263, p:19.3, f:19.2, c:0.2, u:"g", per100g:true},
-  {n:"牛バラ肉", k:371, p:12.8, f:32.9, c:0.3, u:"g", per100g:true, g:["ぎゅう","ビーフ"]},
-  {n:"牛ロース", k:318, p:16.5, f:26.1, c:0.2, u:"g", per100g:true},
+  {n:"鶏むね肉 (皮なし)", k:108, p:22.3, f:1.5, c:0, u:"100g", g:["とりむね","チキン"]},
+  {n:"鶏もも肉", k:200, p:16.6, f:14.2, c:0, u:"100g", g:["とりもも","チキン"]},
+  {n:"ささみ", k:105, p:23.0, f:0.8, c:0, u:"100g"},
+  {n:"豚バラ肉", k:386, p:14.4, f:35.4, c:0.1, u:"100g", g:["ぶた","ポーク"]},
+  {n:"豚ロース", k:263, p:19.3, f:19.2, c:0.2, u:"100g"},
+  {n:"牛バラ肉", k:371, p:12.8, f:32.9, c:0.3, u:"100g", g:["ぎゅう","ビーフ"]},
+  {n:"牛ロース", k:318, p:16.5, f:26.1, c:0.2, u:"100g"},
   {n:"ハンバーグ", k:300, p:18, f:22, c:10, u:"個"},
   {n:"唐揚げ", k:90, p:4.5, f:5.0, c:5, u:"個", g:["からあげ","フライドチキン"]},
   {n:"とんかつ", k:450, p:25, f:30, c:20, u:"枚"},
@@ -668,8 +657,8 @@ const FOOD_DB = [
   {n:"ベーコン", k:40, p:1.4, f:4.0, c:0.1, u:"枚"},
   // 魚
   {n:"鮭 (1切れ)", k:112, p:17.8, f:4.0, c:0.1, u:"切れ", g:["サケ","しゃけ","サーモン"]},
-  {n:"マグロ赤身", k:125, p:26.4, f:1.4, c:0.1, u:"g", per100g:true, g:["まぐろ","ツナ"]},
-  {n:"サバ", k:247, p:20.6, f:16.8, c:0.3, u:"g", per100g:true, g:["さば"]},
+  {n:"マグロ赤身", k:125, p:26.4, f:1.4, c:0.1, u:"100g", g:["まぐろ","ツナ"]},
+  {n:"サバ", k:247, p:20.6, f:16.8, c:0.3, u:"100g", g:["さば"]},
   {n:"刺身盛り合わせ", k:200, p:30, f:8, c:2, u:"皿", g:["さしみ"]},
   {n:"焼き魚", k:150, p:22, f:6, c:0.5, u:"切れ"},
   {n:"ツナ缶 (オイル)", k:267, p:17.7, f:21.7, c:0.1, u:"缶"},
@@ -679,18 +668,18 @@ const FOOD_DB = [
   {n:"目玉焼き", k:110, p:6.5, f:8.5, c:0.3, u:"個"},
   {n:"オムレツ", k:180, p:11, f:14, c:2, u:"個"},
   {n:"牛乳 (200ml)", k:134, p:6.6, f:7.6, c:9.6, u:"杯", g:["ミルク"]},
-  {n:"ヨーグルト", k:62, p:3.6, f:3.0, c:4.9, u:"g", per100g:true},
+  {n:"ヨーグルト", k:62, p:3.6, f:3.0, c:4.9, u:"100g"},
   {n:"チーズ (スライス)", k:68, p:4.5, f:5.2, c:0.3, u:"枚"},
   {n:"バター", k:75, p:0.1, f:8.1, c:0, u:"10g"},
   // 野菜
   {n:"サラダ (一皿)", k:30, p:1.5, f:0.2, c:5, u:"皿"},
   {n:"野菜炒め", k:200, p:5, f:12, c:18, u:"皿"},
-  {n:"キャベツ", k:23, p:1.3, f:0.2, c:5.2, u:"g", per100g:true},
+  {n:"キャベツ", k:23, p:1.3, f:0.2, c:5.2, u:"100g"},
   {n:"トマト", k:30, p:1.0, f:0.2, c:7, u:"個"},
   {n:"きゅうり", k:14, p:1.0, f:0.1, c:3, u:"本", g:["キュウリ"]},
   {n:"アボカド", k:262, p:3.5, f:26, c:8, u:"個"},
-  {n:"ブロッコリー", k:33, p:4.3, f:0.5, c:5.2, u:"g", per100g:true},
-  {n:"ほうれん草", k:20, p:2.2, f:0.4, c:3.1, u:"g", per100g:true, g:["ほうれんそう"]},
+  {n:"ブロッコリー", k:33, p:4.3, f:0.5, c:5.2, u:"100g"},
+  {n:"ほうれん草", k:20, p:2.2, f:0.4, c:3.1, u:"100g", g:["ほうれんそう"]},
   // 果物
   {n:"バナナ", k:86, p:1.1, f:0.2, c:22.5, u:"本"},
   {n:"りんご", k:138, p:0.5, f:0.4, c:36, u:"個", g:["リンゴ","アップル"]},
@@ -709,40 +698,40 @@ const FOOD_DB = [
   {n:"豆乳", k:92, p:7.2, f:4, c:5.8, u:"杯", g:["とうにゅう","ソイミルク"]},
   {n:"味噌汁", k:40, p:3, f:1.5, c:4, u:"杯", g:["みそ汁","みそしる"]},
   {n:"豚汁", k:130, p:7, f:8, c:8, u:"杯", g:["とんじる"]},
-  {n:"枝豆", k:135, p:11.7, f:6.2, c:8.8, u:"g", per100g:true, g:["えだまめ"]},
+  {n:"枝豆", k:135, p:11.7, f:6.2, c:8.8, u:"100g", g:["えだまめ"]},
   // 海藻類
   {n:"めかぶ", k:11, p:1.0, f:0.6, c:2.6, u:"パック", g:["メカブ","めかぶ酢"]},
   {n:"もずく酢", k:30, p:0.6, f:0.1, c:7, u:"パック", g:["モズク","もずく"]},
-  {n:"わかめ (戻し)", k:14, p:1.9, f:0.2, c:5.8, u:"g", per100g:true, g:["ワカメ","若布"]},
+  {n:"わかめ (戻し)", k:14, p:1.9, f:0.2, c:5.8, u:"100g", g:["ワカメ","若布"]},
   {n:"わかめスープ", k:20, p:1.5, f:0.3, c:3, u:"杯"},
   {n:"海藻サラダ", k:25, p:1.5, f:0.5, c:4, u:"皿", g:["かいそう","海草"]},
   {n:"ひじきの煮物", k:65, p:2, f:2, c:10, u:"皿", g:["ひじき","ヒジキ"]},
   {n:"昆布", k:14, p:0.6, f:0.1, c:6, u:"10g", g:["こんぶ","コンブ"]},
   {n:"のり (焼き海苔)", k:6, p:1.2, f:0.1, c:1.0, u:"枚", g:["海苔","ノリ","のり"]},
   // 野菜類（追加）
-  {n:"もやし", k:14, p:1.7, f:0.1, c:2.6, u:"g", per100g:true, g:["モヤシ"]},
+  {n:"もやし", k:14, p:1.7, f:0.1, c:2.6, u:"100g", g:["モヤシ"]},
   {n:"人参", k:35, p:0.7, f:0.2, c:9, u:"本", g:["にんじん","ニンジン"]},
-  {n:"大根", k:18, p:0.4, f:0.1, c:4, u:"g", per100g:true, g:["だいこん","ダイコン"]},
+  {n:"大根", k:18, p:0.4, f:0.1, c:4, u:"100g", g:["だいこん","ダイコン"]},
   {n:"玉ねぎ", k:60, p:1.5, f:0.2, c:14, u:"個", g:["たまねぎ","タマネギ","オニオン"]},
   {n:"ピーマン", k:8, p:0.3, f:0.1, c:2, u:"個", g:["ぴーまん"]},
   {n:"なす", k:22, p:1.1, f:0.1, c:5, u:"本", g:["ナス","茄子"]},
-  {n:"かぼちゃ", k:91, p:1.9, f:0.3, c:20, u:"g", per100g:true, g:["カボチャ","南瓜","パンプキン"]},
+  {n:"かぼちゃ", k:91, p:1.9, f:0.3, c:20, u:"100g", g:["カボチャ","南瓜","パンプキン"]},
   {n:"じゃがいも", k:76, p:1.6, f:0.1, c:18, u:"個", g:["ジャガイモ","ポテト","馬鈴薯"]},
   {n:"さつまいも", k:165, p:1.2, f:0.2, c:40, u:"本", g:["サツマイモ","薩摩芋"]},
   {n:"里芋", k:30, p:1.0, f:0.1, c:7, u:"個", g:["さといも","サトイモ"]},
   {n:"ごぼう", k:65, p:1.8, f:0.1, c:15, u:"本", g:["ゴボウ","牛蒡"]},
-  {n:"レタス", k:12, p:0.6, f:0.1, c:2.8, u:"g", per100g:true, g:["れたす"]},
-  {n:"白菜", k:14, p:0.8, f:0.1, c:3.2, u:"g", per100g:true, g:["はくさい","ハクサイ"]},
-  {n:"しらたき", k:6, p:0.2, f:0, c:3, u:"g", per100g:true, g:["白滝","シラタキ"]},
-  {n:"こんにゃく", k:5, p:0.1, f:0, c:2.3, u:"g", per100g:true, g:["コンニャク","蒟蒻"]},
-  {n:"小松菜", k:14, p:1.5, f:0.2, c:2.4, u:"g", per100g:true, g:["こまつな","コマツナ"]},
-  {n:"水菜", k:23, p:2.2, f:0.1, c:4.8, u:"g", per100g:true, g:["みずな","ミズナ"]},
+  {n:"レタス", k:12, p:0.6, f:0.1, c:2.8, u:"100g", g:["れたす"]},
+  {n:"白菜", k:14, p:0.8, f:0.1, c:3.2, u:"100g", g:["はくさい","ハクサイ"]},
+  {n:"しらたき", k:6, p:0.2, f:0, c:3, u:"100g", g:["白滝","シラタキ"]},
+  {n:"こんにゃく", k:5, p:0.1, f:0, c:2.3, u:"100g", g:["コンニャク","蒟蒻"]},
+  {n:"小松菜", k:14, p:1.5, f:0.2, c:2.4, u:"100g", g:["こまつな","コマツナ"]},
+  {n:"水菜", k:23, p:2.2, f:0.1, c:4.8, u:"100g", g:["みずな","ミズナ"]},
   // きのこ類
   {n:"しいたけ", k:5, p:0.5, f:0, c:1, u:"個", g:["シイタケ","椎茸"]},
-  {n:"えのき", k:22, p:2.7, f:0.2, c:5, u:"g", per100g:true, g:["エノキ","えのきだけ"]},
-  {n:"しめじ", k:18, p:2.7, f:0.5, c:3, u:"g", per100g:true, g:["シメジ","ぶなしめじ"]},
-  {n:"まいたけ", k:16, p:3.7, f:0.7, c:4, u:"g", per100g:true, g:["マイタケ","舞茸"]},
-  {n:"エリンギ", k:24, p:2.8, f:0.4, c:6, u:"g", per100g:true, g:["えりんぎ"]},
+  {n:"えのき", k:22, p:2.7, f:0.2, c:5, u:"100g", g:["エノキ","えのきだけ"]},
+  {n:"しめじ", k:18, p:2.7, f:0.5, c:3, u:"100g", g:["シメジ","ぶなしめじ"]},
+  {n:"まいたけ", k:16, p:3.7, f:0.7, c:4, u:"100g", g:["マイタケ","舞茸"]},
+  {n:"エリンギ", k:24, p:2.8, f:0.4, c:6, u:"100g", g:["えりんぎ"]},
   // 和食おかず
   {n:"ほうれん草のおひたし", k:25, p:3, f:0.4, c:4, u:"皿", g:["おひたし"]},
   {n:"きんぴらごぼう", k:90, p:2, f:4, c:12, u:"皿", g:["きんぴら"]},
@@ -852,116 +841,6 @@ const FOOD_DB = [
   {n:"冷凍ギョーザ", k:200, p:9, f:10, c:20, u:"6個", g:["れいとうぎょうざ"]},
   {n:"たこ焼き", k:50, p:2, f:2.5, c:5, u:"個", g:["タコ焼き","たこやき"]},
   {n:"お好み焼き", k:480, p:18, f:20, c:55, u:"枚", g:["おこのみやき"]},
-  // 和食・家庭料理
-  {n:"ひじきご飯", k:180, p:3.5, f:2, c:36, u:"杯", g:["ひじきごはん"]},
-  {n:"炊き込みご飯", k:200, p:4, f:1.5, c:42, u:"杯", g:["たきこみごはん"]},
-  {n:"おこわ", k:210, p:4, f:1, c:45, u:"杯"},
-  {n:"茶碗蒸し", k:80, p:6, f:3, c:7, u:"個", g:["ちゃわんむし"]},
-  {n:"卵焼き", k:120, p:8, f:8, c:3, u:"切れ", g:["たまごやき","だしまきたまご"]},
-  {n:"卵とじ", k:150, p:10, f:8, c:8, u:"皿"},
-  {n:"ポテトサラダ", k:180, p:3, f:10, c:20, u:"皿", g:["ぽてとさらだ"]},
-  {n:"マカロニサラダ", k:200, p:4, f:10, c:24, u:"皿"},
-  {n:"コールスロー", k:120, p:1.5, f:7, c:13, u:"皿"},
-  {n:"かぼちゃの煮物", k:130, p:2, f:2, c:26, u:"皿", g:["かぼちゃにもの"]},
-  {n:"ひじきの煮物追加", k:65, p:2.5, f:3, c:8, u:"皿"},
-  {n:"高野豆腐の煮物", k:120, p:11, f:7, c:4, u:"皿"},
-  {n:"白和え", k:100, p:5, f:4, c:10, u:"皿", g:["しらあえ"]},
-  {n:"冷や奴", k:90, p:8, f:5, c:2, u:"皿", g:["ひややっこ"]},
-  {n:"湯豆腐", k:95, p:8, f:5, c:3, u:"皿", g:["ゆどうふ"]},
-  {n:"酢の物", k:40, p:2, f:0.2, c:8, u:"皿", g:["すのもの"]},
-  {n:"ぬか漬け", k:15, p:1, f:0.1, c:3, u:"皿"},
-  {n:"梅干し", k:10, p:0.3, f:0.1, c:2.5, u:"個", g:["うめぼし"]},
-  {n:"佃煮", k:50, p:3, f:0.5, c:9, u:"大さじ", g:["つくだに"]},
-  // 汁物
-  {n:"豚汁追加", k:130, p:7, f:8, c:8, u:"杯"},
-  {n:"けんちん汁", k:100, p:5, f:4, c:12, u:"杯", g:["けんちんじる"]},
-  {n:"すまし汁", k:20, p:1.5, f:0.5, c:2, u:"杯"},
-  {n:"コーンスープ", k:110, p:3, f:4, c:16, u:"杯", g:["コーンポタージュ"]},
-  {n:"トマトスープ", k:60, p:2, f:2, c:8, u:"杯"},
-  {n:"オニオンスープ", k:50, p:1.5, f:2, c:7, u:"杯"},
-  {n:"クラムチャウダー", k:150, p:6, f:7, c:16, u:"杯"},
-  // 洋食
-  {n:"オムライス", k:550, p:18, f:22, c:65, u:"皿", g:["おむらいす"]},
-  {n:"ドリア", k:520, p:18, f:22, c:58, u:"皿"},
-  {n:"グラタン", k:480, p:18, f:24, c:45, u:"皿"},
-  {n:"シチュー", k:350, p:15, f:18, c:30, u:"皿", g:["クリームシチュー","ビーフシチュー"]},
-  {n:"ミートボール", k:60, p:4, f:4, c:3, u:"個", g:["みーとぼーる"]},
-  {n:"鶏のから揚げ定食風", k:750, p:32, f:28, c:75, u:"皿"},
-  {n:"ロールキャベツ", k:200, p:12, f:12, c:12, u:"個", g:["ろーるきゃべつ"]},
-  {n:"ポークソテー", k:350, p:22, f:24, c:5, u:"枚", g:["ぽーくそてー"]},
-  {n:"チキンソテー", k:280, p:26, f:18, c:3, u:"枚"},
-  {n:"魚のムニエル", k:250, p:22, f:15, c:5, u:"切れ"},
-  // 中華
-  {n:"エビチリ", k:220, p:16, f:10, c:16, u:"皿", g:["えびちり"]},
-  {n:"酢豚", k:320, p:14, f:16, c:28, u:"皿", g:["すぶた"]},
-  {n:"青椒肉絲", k:280, p:18, f:18, c:10, u:"皿", g:["チンジャオロース"]},
-  {n:"回鍋肉", k:300, p:16, f:22, c:10, u:"皿", g:["ホイコーロー"]},
-  {n:"八宝菜", k:200, p:14, f:10, c:14, u:"皿", g:["はっぽうさい"]},
-  {n:"中華丼", k:650, p:18, f:18, c:90, u:"杯", g:["ちゅうかどん"]},
-  {n:"天津飯", k:600, p:16, f:20, c:85, u:"杯", g:["てんしんはん"]},
-  {n:"エビ炒め", k:180, p:16, f:8, c:8, u:"皿"},
-  // 魚料理追加
-  {n:"サーモン刺身", k:150, p:20, f:8, c:0, u:"g", per100g:true, g:["サーモン","鮭刺身"]},
-  {n:"ぶり刺身", k:257, p:21, f:17, c:0.4, u:"g", per100g:true, g:["ブリ","はまち"]},
-  {n:"タコ", k:76, p:16.4, f:0.7, c:0.1, u:"g", per100g:true, g:["たこ","蛸"]},
-  {n:"イカ", k:88, p:17.9, f:1.2, c:0.4, u:"g", per100g:true, g:["いか","烏賊"]},
-  {n:"エビ", k:97, p:21.7, f:0.6, c:0.1, u:"g", per100g:true, g:["えび","海老"]},
-  {n:"ホタテ", k:72, p:13.5, f:0.9, c:1.5, u:"個", g:["ほたて","帆立"]},
-  {n:"アサリ", k:30, p:6, f:0.3, c:0.4, u:"g", per100g:true, g:["あさり"]},
-  {n:"シジミ", k:54, p:7.5, f:1.4, c:4.5, u:"g", per100g:true, g:["しじみ"]},
-  {n:"カキ", k:60, p:6.9, f:2.2, c:4.7, u:"個", g:["かき","牡蠣"]},
-  {n:"いくら", k:272, p:32.6, f:15.6, c:0.2, u:"大さじ", g:["イクラ","いくら"]},
-  {n:"たらこ", k:140, p:21, f:4.7, c:0.4, u:"本", g:["タラコ","明太子","めんたいこ"]},
-  // 肉料理追加
-  {n:"牛ステーキ", k:318, p:16.5, f:26, c:0.2, u:"g", per100g:true, g:["ビーフステーキ","ステーキ"]},
-  {n:"豚しゃぶ", k:263, p:19, f:19, c:0.2, u:"g", per100g:true, g:["しゃぶしゃぶ"]},
-  {n:"焼き鳥 もも", k:60, p:5, f:3.5, c:2, u:"本", g:["やきとり"]},
-  {n:"焼き鳥 ねぎま", k:55, p:5, f:3, c:2, u:"本"},
-  {n:"焼き鳥 つくね", k:65, p:5, f:4, c:3, u:"本"},
-  {n:"焼き鳥 砂肝", k:40, p:5.5, f:1.5, c:0.5, u:"本", g:["すなぎも"]},
-  {n:"レバー 鶏", k:111, p:18.9, f:3.1, c:0.6, u:"g", per100g:true, g:["とりレバー","鶏レバー"]},
-  {n:"豚レバー", k:128, p:20.4, f:3.4, c:2.5, u:"g", per100g:true, g:["ぶたレバー"]},
-  // 乳製品追加
-  {n:"ギリシャヨーグルト", k:100, p:10, f:5, c:4, u:"個"},
-  {n:"カッテージチーズ", k:105, p:13.3, f:4.5, c:1.9, u:"g", per100g:true},
-  {n:"クリームチーズ", k:346, p:8.2, f:33, c:2.3, u:"g", per100g:true},
-  {n:"豆乳ヨーグルト", k:55, p:2.5, f:2, c:6, u:"個"},
-  // 野菜追加
-  {n:"ほうれん草のソテー", k:60, p:3, f:4, c:3, u:"皿"},
-  {n:"ブロッコリー茹で", k:30, p:3.5, f:0.4, c:3.5, u:"g", per100g:true},
-  {n:"アスパラガス", k:22, p:2.6, f:0.2, c:3.9, u:"g", per100g:true, g:["アスパラ"]},
-  {n:"セロリ", k:15, p:1, f:0.1, c:3.6, u:"本"},
-  {n:"パプリカ", k:30, p:1, f:0.2, c:7, u:"個", g:["ぱぷりか"]},
-  {n:"オクラ", k:30, p:2.1, f:0.2, c:6.6, u:"本", g:["おくら"]},
-  {n:"ズッキーニ", k:16, p:1.3, f:0.1, c:2.8, u:"本"},
-  {n:"かいわれ大根", k:21, p:2.1, f:0.5, c:3.3, u:"袋"},
-  {n:"豆苗", k:31, p:3.8, f:0.4, c:4.4, u:"袋", g:["とうみょう"]},
-  {n:"春菊", k:22, p:2.3, f:0.3, c:3.9, u:"g", per100g:true, g:["しゅんぎく"]},
-  {n:"三つ葉", k:13, p:1, f:0.1, c:2.7, u:"束", g:["みつば"]},
-  {n:"山芋", k:65, p:2.2, f:0.3, c:13.9, u:"g", per100g:true, g:["やまいも","長芋","ながいも"]},
-  {n:"れんこん", k:66, p:1.9, f:0.1, c:16.2, u:"g", per100g:true, g:["蓮根","レンコン"]},
-  // 果物追加
-  {n:"キウイ", k:53, p:1, f:0.1, c:13.5, u:"個", g:["キウイフルーツ"]},
-  {n:"スイカ", k:37, p:0.6, f:0.1, c:9.5, u:"切れ", g:["すいか","西瓜"]},
-  {n:"もも", k:40, p:0.6, f:0.1, c:10.2, u:"個", g:["桃","ピーチ"]},
-  {n:"なし", k:43, p:0.3, f:0.1, c:11.3, u:"個", g:["梨"]},
-  {n:"かき", k:60, p:0.4, f:0.2, c:15.9, u:"個", g:["柿"]},
-  {n:"グレープフルーツ", k:38, p:0.9, f:0.1, c:9, u:"個"},
-  {n:"レモン", k:54, p:0.9, f:0.7, c:12.5, u:"個"},
-  {n:"マンゴー", k:68, p:0.6, f:0.1, c:17.1, u:"個", g:["まんごー"]},
-  {n:"パイナップル", k:54, p:0.6, f:0.1, c:13.7, u:"切れ", g:["パイン"]},
-  {n:"ブルーベリー", k:49, p:0.5, f:0.1, c:12.8, u:"g", per100g:true},
-  // 飲み物追加
-  {n:"緑茶", k:2, p:0.2, f:0, c:0.3, u:"杯", g:["りょくちゃ","お茶"]},
-  {n:"麦茶", k:1, p:0, f:0, c:0.3, u:"杯", g:["むぎちゃ"]},
-  {n:"ほうじ茶", k:2, p:0.1, f:0, c:0.3, u:"杯"},
-  {n:"豆乳 (無調整)", k:44, p:3.6, f:2, c:3, u:"杯"},
-  {n:"甘酒", k:81, p:1.7, f:0.1, c:18.3, u:"杯", g:["あまざけ"]},
-  {n:"野菜ジュース", k:35, p:1, f:0.1, c:8, u:"缶"},
-  {n:"スポーツドリンク", k:25, p:0, f:0, c:6, u:"缶", g:["ポカリ","アクエリアス"]},
-  {n:"エナジードリンク", k:46, p:0, f:0, c:11, u:"缶", g:["モンスター","レッドブル"]},
-  {n:"ハイボール", k:70, p:0, f:0, c:2, u:"缶", g:["ウィスキー"]},
-  {n:"チューハイ", k:130, p:0, f:0, c:8, u:"缶", g:["サワー"]},
 ];
 
 // 運動METs値 (1MET = 1kcal/kg/時間)
@@ -994,8 +873,14 @@ customFoods.forEach(f => { f.custom = true; FOOD_DB.unshift(f); });
 let data = JSON.parse(localStorage.getItem('dietData') || '{}');
 let goals = JSON.parse(localStorage.getItem('dietGoals') || '{}');
 // デフォルト値
-const defaultGoals = {calorie:1800, burn:300, sleep:8, weight:55, height:160, age:30, sex:'female', activity:1.375, goalAdj:-150, autoCalorie:true};
+const defaultGoals = {calorie:1600, burn:300, sleep:8, weight:55, height:160, age:30, sex:'female', activity:1.375, goalAdj:-150, autoCalorie:false};
 goals = Object.assign({}, defaultGoals, goals);
+if (!goals._v || goals._v < 2) {
+  goals.calorie = 1600;
+  goals.autoCalorie = false;
+  goals._v = 2;
+  localStorage.setItem('dietGoals', JSON.stringify(goals));
+}
 let currentDate = new Date().toISOString().split('T')[0];
 let selectedFood = null;
 
@@ -1063,7 +948,7 @@ function updateProfileCalc() {
   document.getElementById('recommendCal').textContent = recommend;
   document.getElementById('bmiValue').textContent = bmi;
   // PFCバランス（ダイエット推奨: P25%, F25%, C50%）
-  const pTarget = Math.round(recommend * 0.25 / 4);
+  const pTarget = Math.round(goals.calorie / 32);
   const fTarget = Math.round(recommend * 0.25 / 9);
   const cTarget = Math.round(recommend * 0.50 / 4);
   document.getElementById('pTargetP').textContent = pTarget;
@@ -1093,27 +978,15 @@ function openCustomFoodForm() {
   document.getElementById('customFoodForm').style.display = 'block';
   document.getElementById('cfName').focus();
 }
-function toggleGMode() {
-  const gMode = document.getElementById('cfGMode').checked;
-  document.getElementById('gModeHint').style.display = gMode ? 'block' : 'none';
-  document.getElementById('cfUnitRow').style.display = gMode ? 'none' : '';
-  document.getElementById('cfKcalLabel').textContent = gMode
-    ? '100gあたりのカロリー *'
-    : '1個・1枚あたりのカロリー *';
-  document.getElementById('cfKcal').placeholder = gMode ? '例: なすなら22、コロッケなら190' : '例: 190';
-}
 function closeCustomFoodForm() {
   document.getElementById('customFoodForm').style.display = 'none';
   ['cfName','cfKcal','cfUnit','cfP','cfF','cfC'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('cfGMode').checked = false;
-  toggleGMode();
 }
 function saveCustomFood() {
   const name = document.getElementById('cfName').value.trim();
   const kcal = +document.getElementById('cfKcal').value;
-  const gMode = document.getElementById('cfGMode').checked;
-  const unit = gMode ? 'g' : document.getElementById('cfUnit').value.trim();
-  if(!name || !kcal || (!gMode && !unit)) {
+  const unit = document.getElementById('cfUnit').value.trim();
+  if(!name || !kcal || !unit) {
     alert('名前・カロリー・単位は必須だよ');
     return;
   }
@@ -1121,7 +994,6 @@ function saveCustomFood() {
     n: name,
     k: kcal,
     u: unit,
-    per100g: gMode,
     p: +document.getElementById('cfP').value || 0,
     f: +document.getElementById('cfF').value || 0,
     c: +document.getElementById('cfC').value || 0,
@@ -1219,13 +1091,12 @@ function showToast(msg) {
 
 function selectFoodByIdx(idx) {
   const f = FOOD_DB[idx];
-  selectedFood = {name: f.n, kcalPerUnit: f.k, unit: f.u, per100g: !!f.per100g, foodObj: f};
+  selectedFood = {name: f.n, kcalPerUnit: f.k, unit: f.u, foodObj: f};
   document.getElementById('selectedFood').style.display = 'block';
   document.getElementById('selectedFoodName').textContent = f.n;
-  document.getElementById('foodUnit').value = f.per100g ? 'g' : f.u;
-  document.getElementById('foodUnitLabel').textContent = f.per100g ? '何g食べた？' : '単位';
-  document.getElementById('foodAmount').value = f.per100g ? 100 : 1;
+  document.getElementById('foodUnit').value = f.u;
   document.getElementById('mealName').value = f.n;
+  document.getElementById('foodAmount').value = 1;
   recalcMealCalories();
   searchInput.value = '';
   suggestBox.style.display = 'none';
@@ -1241,10 +1112,7 @@ function clearSelectedFood() {
 function recalcMealCalories() {
   if(!selectedFood) return;
   const amt = +document.getElementById('foodAmount').value || 0;
-  const kcal = selectedFood.per100g
-    ? Math.round(selectedFood.kcalPerUnit * amt / 100)
-    : Math.round(selectedFood.kcalPerUnit * amt);
-  document.getElementById('mealCalories').value = kcal;
+  document.getElementById('mealCalories').value = Math.round(selectedFood.kcalPerUnit * amt);
 }
 document.getElementById('foodAmount').addEventListener('input', recalcMealCalories);
 
@@ -1297,15 +1165,12 @@ function addMeal() {
     getDay(currentDate).meals.push({name, cal: +manual, type, time, p:0, f:0, c:0});
   } else if(selectedFood && selectedFood.foodObj) {
     const fo = selectedFood.foodObj;
-    const displayName = selectedFood.per100g
-      ? `${name} × ${amt}g`
-      : `${name} × ${amt} ${selectedFood.unit}`;
-    const ratio = selectedFood.per100g ? amt / 100 : amt;
+    const displayName = `${name} × ${amt}${selectedFood.unit}`;
     getDay(currentDate).meals.push({
       name: displayName, cal, type, time,
-      p: +(fo.p * ratio).toFixed(1),
-      f: +(fo.f * ratio).toFixed(1),
-      c: +(fo.c * ratio).toFixed(1),
+      p: +(fo.p * amt).toFixed(1),
+      f: +(fo.f * amt).toFixed(1),
+      c: +(fo.c * amt).toFixed(1),
     });
   } else {
     getDay(currentDate).meals.push({name, cal, type, time, p:0, f:0, c:0});
@@ -1383,7 +1248,7 @@ function render() {
       <div class="record-item">
         <div class="record-info">
           <div class="record-name">${m.type}: ${m.name}</div>
-          <div class="record-detail">${m.cal} kcal · P${m.p||0}g · F${m.f||0}g · C${m.c||0}g</div>
+          <div class="record-detail">${m.cal} kcal · ${m.time||''}</div>
         </div>
         <button class="delete-btn" onclick="deleteMeal(${i})">削除</button>
       </div>`).join('');
