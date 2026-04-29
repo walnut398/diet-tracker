@@ -1288,7 +1288,7 @@ function render() {
   document.getElementById('totalCalories').textContent = totalCal;
   document.getElementById('burnedCalories').textContent = burnedCal;
   document.getElementById('totalSleep').textContent = sleepHrs;
-  document.getElementById('netCalories').innerHTML = (totalCal - burnedCal) + '<span class="unit">kcal</span>';
+  document.getElementById('netCalories').innerHTML = (goals.calorie - totalCal) + '<span class="unit">kcal</span>';
   document.getElementById('caloriesProgress').style.width = Math.min(100, (totalCal/goals.calorie)*100) + '%';
   document.getElementById('burnedProgress').style.width = Math.min(100, (burnedCal/goals.burn)*100) + '%';
   document.getElementById('sleepProgress').style.width = Math.min(100, (sleepHrs/goals.sleep)*100) + '%';
